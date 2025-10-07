@@ -12,12 +12,12 @@ const config = toml.parse(tomlData).snowflake;
 const connection = snowflake.createConnection({
     account: config.account,
     username: config.user,
-    password: process.env.SNOWFLAKE_PASSWORD,
     authenticator: "externalbrowser",
     warehouse: config.warehouse,
     database: config.database,
     schema: config.schema,
     role: config.role,
+    session_parameters: { "CLIENT_SESSION_KEEP_ALIVE": true }
 });
 
 // Connect
