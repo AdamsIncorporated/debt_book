@@ -1,50 +1,65 @@
-const path = require('path');
-const { CleanWebpackPlugin } = require('clean-webpack-plugin');
-const HtmlWebpackPlugin = require('html-webpack-plugin');
+const path = require("path");
+const webpack = require("webpack");
+const HtmlWebpackPlugin = require("html-webpack-plugin");
+const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 
 module.exports = {
-    devtool: 'source-map',
-    entry: './src/index.tsx',
+    mode: "development",
+    entry: "./src/index.tsx",
+    devtool: "source-map",
+    devServer: {
+        static: {
+            directory: path.join(__dirname, "src", "assets"),
+        },
+        historyApiFallback: true,
+        // proxy: [
+        //   {
+        //     context: ["/api"],
+        //     target: "http://localhost:5000",
+        //     changeOrigin: true,
+        //     pathRewrite: {
+        //       "^/api": "",
+        //     },
+        //     logLevel: "debug",
+        //   },
+        // ],
+    },
     output: {
-        path: path.resolve(__dirname, 'dist'),
-        filename: 'bundle.js',
+        filename: "bundle.js",
+        path: path.resolve(__dirname, "dist"),
+        publicPath: "/",
     },
     resolve: {
-        extensions: ['.tsx', '.ts', '.js'],
+        extensions: [".tsx", ".ts", ".js", ".css"],
     },
     module: {
         rules: [
             {
-                test: /\.tsx?$/,
-                use: 'ts-loader',
+                test: /\.(ts|tsx)$/,
                 exclude: /node_modules/,
+                use: "babel-loader",
             },
             {
-                test: /\.css$/i,
-                use: ['style-loader', 'css-loader'],
+                test: /\.css$/,
+                use: [MiniCssExtractPlugin.loader, "css-loader", "postcss-loader"],
             },
             {
-                test: /\.(png|jpg|jpeg|gif|svg)$/i,
-                type: 'asset/resource',
-            },
-            {
-                enforce: 'pre',
-                test: /\.js$/,
-                loader: 'source-map-loader',
+                test: /\.(png|jpe?g|gif|svg)$/i,
+                use: ["file-loader?name=[name].[ext]"],
             },
         ],
     },
     plugins: [
-        new CleanWebpackPlugin(),
         new HtmlWebpackPlugin({
-            template: './public/index.html',
+            template: "./src/index.html",
+            favicon: "./public/images/favicon.png",
+        }),
+        new webpack.DefinePlugin({
+            "process.env.PUBLIC_URL": JSON.stringify("/"),
+        }),
+        new MiniCssExtractPlugin({
+            filename: "[name].css",
+            chunkFilename: "[id].css",
         }),
     ],
-    devServer: {
-        static: './public/index.html',
-        historyApiFallback: true,
-        port: 3000,
-        hot: true,
-        open: true,
-    },
 };
