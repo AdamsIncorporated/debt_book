@@ -21,7 +21,7 @@ const connection = snowflake.createConnection({
 });
 
 // Connect
-connection.connect((err: any) => {
+connection.connectAsync((err: any) => {
     if (err) console.error("Unable to connect:", err.message);
     else console.log("Connected to Snowflake!");
 });
