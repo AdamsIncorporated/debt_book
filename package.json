@@ -3,20 +3,27 @@
     "version": "1.0.0",
     "private": true,
     "scripts": {
-        "start": "webpack serve --mode development --open --hot",
+        "start:frontend": "webpack serve --mode development --open --hot",
+        "start:backend": "ts-node ./api/server.ts",
+        "start": "concurrently \"npm run start:backend\" \"npm run start:frontend\"",
         "build": "webpack --mode production",
         "clean": "rm -rf dist"
     },
     "dependencies": {
+        "fs": "^0.0.1-security",
         "react": "^18.3.1",
-        "react-dom": "^18.2.0"
+        "react-dom": "^18.2.0",
+        "snowflake-sdk": "^2.3.0",
+        "toml": "^3.0.0"
     },
     "devDependencies": {
+        "@types/node": "^24.7.0",
         "@types/react": "^19.2.2",
         "@types/react-dom": "^19.2.1",
         "@typescript-eslint/eslint-plugin": "^6.8.0",
         "@typescript-eslint/parser": "^6.8.0",
         "clean-webpack-plugin": "^4.0.0",
+        "concurrently": "^9.2.1",
         "css-loader": "^6.8.1",
         "eslint": "^8.47.0",
         "eslint-plugin-react": "^7.33.1",
@@ -24,7 +31,8 @@
         "source-map-loader": "^4.0.0",
         "style-loader": "^3.3.2",
         "ts-loader": "^9.4.4",
-        "typescript": "^5.1.6",
+        "ts-node": "^10.9.2",
+        "typescript": "^5.9.3",
         "webpack": "^5.88.0",
         "webpack-cli": "^5.1.4",
         "webpack-dev-server": "^4.15.0"
