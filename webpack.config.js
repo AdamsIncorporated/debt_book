@@ -4,6 +4,14 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 
 module.exports = {
     devtool: 'source-map',
+    entry: './src/index.tsx',
+    output: {
+        path: path.resolve(__dirname, 'dist'),
+        filename: 'bundle.js',
+    },
+    resolve: {
+        extensions: ['.tsx', '.ts', '.js'],
+    },
     module: {
         rules: [
             {
@@ -29,11 +37,11 @@ module.exports = {
     plugins: [
         new CleanWebpackPlugin(),
         new HtmlWebpackPlugin({
-            template: path.resolve(__dirname, 'public', 'index.html'),
+            template: './public/index.html',
         }),
     ],
     devServer: {
-        static: path.resolve(__dirname, 'public'),
+        static: './public/index.html',
         historyApiFallback: true,
         port: 3000,
         hot: true,
