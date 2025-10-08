@@ -8,8 +8,8 @@ const ThemedMenuItem: React.FC<MenuItemProps> = ({ children, ...props }) => {
             rootStyles={{
                 backgroundColor: '#0c4a6e', // Tailwind sky-900
                 color: 'white',
-                '--ps-menu-button-hover-bg': '#0369a1', // sky-700 hover
-                '--ps-menu-button-active-bg': '#075985', // sky-800 active
+                '--ps-menu-button-hover-bg': '#0369a1', // Tailwind sky-700
+                '--ps-menu-button-active-bg': '#075985', // Tailwind sky-800
             }}
         >
             {children}
