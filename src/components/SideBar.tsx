@@ -4,17 +4,18 @@ import { Sidebar, Menu, MenuItem, SubMenu } from 'react-pro-sidebar';
 const CustomSideBar: React.FC = () => {
     const [collapsed, setCollapsed] = useState(false);
 
-    const sidebarBg = '#0369a1'; // Tailwind sky-800 hex
+    const sidebarBg = '#003c5cff'; // Tailwind sky-800 hex
     const hoverSidebarBg = '#0c4a6e'; // Tailwind sky-700 hex
 
     return (
-        <div className="h-screen flex bg-sky-800">
+        <div className="h-screen flex bg-sky-800" style={{ backgroundColor: sidebarBg }}>
             <Sidebar
                 collapsed={collapsed}
                 rootStyles={{
                     backgroundColor: sidebarBg,
                     color: 'white',
                 }}
+                sidebarContentStyles={{ backgroundColor: sidebarBg }}
             >
                 <Menu
                     menuItemStyles={{
@@ -46,7 +47,7 @@ const CustomSideBar: React.FC = () => {
             <div className="flex-1 p-4 bg-sky-800 text-white">
                 <h1 className="text-2xl font-bold">Dashboard Content</h1>
             </div>
-        </div>
+        </div >
     );
 };
 
