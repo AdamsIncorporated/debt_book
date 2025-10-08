@@ -4,14 +4,32 @@ import { Sidebar, Menu, MenuItem, SubMenu } from 'react-pro-sidebar';
 const CustomSideBar: React.FC = () => {
     const [collapsed, setCollapsed] = useState(false);
 
+    const sidebarBg = '#0369a1'; // Tailwind sky-800 hex
+    const hoverSidebarBg = '#0c4a6e'; // Tailwind sky-700 hex
+
     return (
-        <div className="h-screen flex bg-sky-800 text-white">
-            {/* Sidebar */}
+        <div className="h-screen flex bg-sky-800">
             <Sidebar
                 collapsed={collapsed}
-                className="h-screen bg-sky-800 text-white"
+                rootStyles={{
+                    backgroundColor: sidebarBg,
+                    color: 'white',
+                }}
             >
-                <Menu className="bg-sky-800 text-white">
+                <Menu
+                    menuItemStyles={{
+                        button: ({ level, active }) => ({
+                            backgroundColor: sidebarBg,
+                            color: 'white',
+                            '&:hover': {
+                                backgroundColor: hoverSidebarBg,
+                            },
+                        }),
+                        // optional: icon and label text
+                        icon: { color: 'white' },
+                        label: { color: 'white' },
+                    }}
+                >
                     <MenuItem onClick={() => setCollapsed(!collapsed)}>
                         {collapsed ? '➡️' : '⬅️'} Toggle
                     </MenuItem>
@@ -25,9 +43,8 @@ const CustomSideBar: React.FC = () => {
                 </Menu>
             </Sidebar>
 
-            {/* Main content */}
-            <div className="flex-1 p-4">
-                <h1 className="text-2xl font-bold text-white">Dashboard Content</h1>
+            <div className="flex-1 p-4 bg-sky-800 text-white">
+                <h1 className="text-2xl font-bold">Dashboard Content</h1>
             </div>
         </div>
     );
