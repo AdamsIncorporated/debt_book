@@ -1,21 +1,21 @@
 @import "tailwindcss";
 
 body {
-    background-color: oklch(39.1% 0.09 240.876) !important;
+    background-color: #024a70;
     color: white;
 }
 
 .ps-sidebar-container,
 .ps-menu-root,
 .ps-submenu-content {
-    background-color: #0c4a6e !important;
+    background-color: rgba(43, 144, 203, 0.587) !important;
     /* Tailwind sky-900 */
     color: white !important;
 }
 
 /* Darker hover background for menu buttons */
 .ps-menu-button:hover {
-    background-color: #082f49 !important;
+    background-color: #082f49a6 !important;
     /* sky-950 */
     color: white !important;
 }

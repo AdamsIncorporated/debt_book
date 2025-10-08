@@ -1,58 +1,33 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
+import ThemedInput from "../Form/ThemedInput";
 
-interface DebtIssuer {
-    issuerName: string;
-}
-
-const Issuer: React.FC = () => {
-    // Bag of entries
-    const [issuers, setIssuers] = useState<DebtIssuer[]>([]);
-    const [issuerName, setIssuerName] = useState('');
-
-    // Handle form submission
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-
-        if (!issuerName.trim()) return;
-
-        const newIssuer: DebtIssuer = {
-            issuerName: issuerName.trim(),
-        };
-
-        // Add to bag
-        setIssuers([...issuers, newIssuer]);
-        setIssuerName('');
-    };
+const IssuerForm: React.FC<{ onNext: () => void }> = ({ onNext }) => {
+    const [issuer, setIssuer] = useState("");
 
     return (
-        <div className="p-4 max-w-md mx-auto">
-            <h2 className="text-xl font-bold mb-4">Add Debt Issuer</h2>
-            <form onSubmit={handleSubmit} className="flex flex-col gap-3">
-                <input
-                    type="text"
+        <div className="p-4">
+            <h2 className="mb-4 text-xl font-semibold text-white">Issuer Form</h2>
+            <form
+                onSubmit={(e) => {
+                    e.preventDefault();
+                    onNext();
+                }}
+                className="flex flex-col gap-4"
+            >
+                <ThemedInput
                     placeholder="Issuer Name"
-                    value={issuerName}
-                    onChange={(e) => setIssuerName(e.target.value)}
-                    className="border p-2 rounded"
+                    value={issuer}
+                    onChange={setIssuer}
                 />
                 <button
                     type="submit"
-                    className="bg-blue-500 text-white p-2 rounded hover:bg-blue-600"
+                    className="w-full rounded-lg bg-sky-700 px-4 py-2 text-white font-semibold transition-all duration-300 hover:bg-sky-600 active:bg-sky-800 focus:ring-2 focus:ring-sky-500"
                 >
-                    Add
+                    Next
                 </button>
             </form>
-
-            <div className="mt-6">
-                <h3 className="text-lg font-semibold">Current Bag</h3>
-                <ul className="list-disc pl-5">
-                    {issuers.map((issuer, idx) => (
-                        <li key={idx}>{issuer.issuerName}</li>
-                    ))}
-                </ul>
-            </div>
         </div>
     );
 };
 
-export default Issuer;
+export default IssuerForm;
