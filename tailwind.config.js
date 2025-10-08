@@ -1,14 +1,8 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-    content: ["./src/**/*.{js,jsx,ts,tsx}"],
+    content: ["./src/**/*.{js,ts,jsx,tsx}"],
     theme: {
-        extend: {
-            fontFamily: {
-                sans: ["Consolas", "sans-serif"],
-            },
-        },
+        extend: {},
     },
     plugins: [],
-    mode: "jit", // Ensure JIT mode is enabled
-    purge: ["./src/**/*.{html,js,jsx,ts,tsx}", "./src/assets/index.html"],
-};
+}

@@ -10,9 +10,7 @@
         "clean": "rm -rf dist"
     },
     "dependencies": {
-        "@tailwindcss/cli": "^4.1.14",
         "fs": "^0.0.1-security",
-        "postcss-preset-env": "^10.4.0",
         "react": "^18.3.1",
         "react-dom": "^18.2.0",
         "snowflake-sdk": "^2.3.0",
@@ -23,6 +21,7 @@
         "@babel/preset-env": "^7.28.3",
         "@babel/preset-react": "^7.27.1",
         "@babel/preset-typescript": "^7.27.1",
+        "@tailwindcss/postcss": "^4.1.14",
         "@types/node": "^24.7.0",
         "@types/react": "^19.2.2",
         "@types/react-dom": "^19.2.1",

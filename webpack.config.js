@@ -9,20 +9,9 @@ module.exports = {
     devtool: "source-map",
     devServer: {
         static: {
-            directory: path.join(__dirname, "src", "assets"),
+            directory: path.join(__dirname, "src", "public"),
         },
         historyApiFallback: true,
-        // proxy: [
-        //   {
-        //     context: ["/api"],
-        //     target: "http://localhost:5000",
-        //     changeOrigin: true,
-        //     pathRewrite: {
-        //       "^/api": "",
-        //     },
-        //     logLevel: "debug",
-        //   },
-        // ],
     },
     output: {
         filename: "bundle.js",
@@ -51,8 +40,8 @@ module.exports = {
     },
     plugins: [
         new HtmlWebpackPlugin({
-            template: "./src/index.html",
-            favicon: "./public/images/favicon.png",
+            template: "./src/public/index.html",
+            favicon: "./src/public/images/favicon.png",
         }),
         new webpack.DefinePlugin({
             "process.env.PUBLIC_URL": JSON.stringify("/"),
