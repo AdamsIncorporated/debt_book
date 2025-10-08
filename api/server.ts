@@ -30,7 +30,7 @@
 // const server = http.createServer((req: any, res: any) => {
 //     if (req.url === "/api/data") {
 //         connection.execute({
-//             sqlText: "SELECT CURRENT_VERSION()",
+//             sqlText: "CALL INSERT_COMMAND(JSON_OBJ)",
 //             complete: (err: any, stmt: any, rows: any) => {
 //                 if (err) {
 //                     res.writeHead(500, { "Content-Type": "application/json" });
