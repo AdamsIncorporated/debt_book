@@ -33,7 +33,7 @@ const DebtSidebar: React.FC = () => {
         <div className="h-screen flex">
             <Sidebar collapsed={collapsed} breakPoint='md'>
                 <div className='flex justify-end bg-sky-900'>
-                    <button onClick={() => setCollapsed(!collapsed)} className="hover:bg-sky-950 hover:cursor-pointer p-2">
+                    <button onClick={() => setCollapsed(!collapsed)} className="hover:bg-sky-950 hover:cursor-pointer hover:text-white p-2">
                         <GoSidebarCollapse />
                     </button>
                 </div>
