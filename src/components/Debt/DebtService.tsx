@@ -51,7 +51,7 @@ const DebtServiceForm: React.FC<DebtServiceFormProps> = ({ onNext, onBack, onSub
             const jsonData: DebtServiceRow[] = XLSX.utils.sheet_to_json(ws);
             setData(jsonData);
         };
-        reader.readAsBinaryString(file);
+        reader.readAsArrayBuffer(file);
     };
 
     const handleSubmitData = () => {

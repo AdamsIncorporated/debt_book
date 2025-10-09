@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Sidebar, Menu, MenuItem, SubMenu } from 'react-pro-sidebar';
+import { GoSidebarCollapse  } from "react-icons/go";
 import IssuerForm from './Debt/Issuer';
 import IssuanceForm from './Debt/Issuance';
 import SeriesForm from './Debt/Series';
@@ -9,6 +10,7 @@ import DebtServiceForm from './Debt/DebtService';
 
 const DebtSidebar: React.FC = () => {
     const [step, setStep] = useState(0);
+    const [collapsed, setCollapsed] = useState(false);
 
     const renderForm = () => {
         switch (step) {
@@ -28,8 +30,13 @@ const DebtSidebar: React.FC = () => {
     };
 
     return (
-        <div className="h-screen flex bg-sky-900">
-            <Sidebar className='bg-sky-900 !important'>
+        <div className="h-screen flex">
+            <Sidebar collapsed={collapsed} breakPoint='md'>
+                <div className='flex justify-end bg-sky-900'>
+                    <button onClick={() => setCollapsed(!collapsed)} className="hover:bg-sky-950 hover:cursor-pointer p-2">
+                        <GoSidebarCollapse />
+                    </button>
+                </div>
                 <Menu className='bg-sky-900 text-white'>
                     <SubMenu className='bg-sky-900 text-white' label="Debt">
                         <MenuItem disabled={step !== 0}>Issuer</MenuItem>
@@ -40,7 +47,6 @@ const DebtSidebar: React.FC = () => {
                     </SubMenu>
                 </Menu>
             </Sidebar>
-
             <main className="flex-1 p-6">{renderForm()}</main>
         </div>
     );
