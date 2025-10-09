@@ -37,8 +37,8 @@ const DebtSidebar: React.FC = () => {
                         <GoSidebarCollapse />
                     </button>
                 </div>
-                <Menu className='bg-sky-900 text-white'>
-                    <SubMenu className='bg-sky-900 text-white' label="Debt">
+                <Menu>
+                    <SubMenu label="Debt">
                         <MenuItem disabled={step !== 0}>Issuer</MenuItem>
                         <MenuItem disabled={step !== 1}>Issuance</MenuItem>
                         <MenuItem disabled={step !== 2}>Series</MenuItem>
@@ -47,7 +47,7 @@ const DebtSidebar: React.FC = () => {
                     </SubMenu>
                 </Menu>
             </Sidebar>
-            <main className="flex-1 p-6">{renderForm()}</main>
+            <main className="flex-1 p-6 overflow-auto">{renderForm()}</main>
         </div>
     );
 };
