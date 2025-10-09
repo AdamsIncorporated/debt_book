@@ -7,10 +7,12 @@ body {
 
 .ps-sidebar-container,
 .ps-menu-root,
-.ps-submenu-content {
+.ps-submenu-content,
+.ps-sidebar-root {
     background-color: rgba(43, 144, 203, 0.587) !important;
     /* Tailwind sky-900 */
     color: white !important;
+    border: none !important;
 }
 
 /* Darker hover background for menu buttons */
@@ -18,4 +20,5 @@ body {
     background-color: #082f49a6 !important;
     /* sky-950 */
     color: white !important;
+    border: none !important;
 }
