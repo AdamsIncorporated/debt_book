@@ -17,7 +17,6 @@
 //     database: config.database,
 //     schema: config.schema,
 //     role: config.role,
-//     client_session_keep_alive=True
 // });
 
 // // Connect
