@@ -3,9 +3,7 @@
     "version": "1.0.0",
     "private": true,
     "scripts": {
-        "start:frontend": "webpack serve --mode development --open --hot",
-        "start:backend": "ts-node ./api/server.ts",
-        "start": "concurrently \"npm run start:backend\" \"npm run start:frontend\"",
+        "start": "webpack serve --mode development --open --hot",
         "build": "webpack --mode production",
         "clean": "rm -rf dist"
     },

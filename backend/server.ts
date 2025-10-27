@@ -1,8 +1,11 @@
-// server.ts
 import fs from "fs";
-import http, { IncomingMessage, ServerResponse } from "http";
+import http from "http";
 import toml from "toml";
-import { Pool, PoolClient, QueryResult } from "pg";
+import pkg from "pg";
+const { Pool } = pkg;
+
+// --- Type imports (TypeScript only, not runtime) ---
+import type { PoolClient, QueryResult } from "pg";
 
 // --- Define types for TOML config ---
 interface PostgresConfig {
@@ -45,7 +48,7 @@ const pool = new Pool({
 })();
 
 // --- Create HTTP server ---
-const server = http.createServer(async (req: IncomingMessage, res: ServerResponse) => {
+const server = http.createServer(async (req: any, res: any) => {
   if (req.url === "/api/data" && req.method === "GET") {
     try {
       const result: QueryResult = await pool.query("SELECT * FROM tbl_debt_maturity LIMIT 10;");
