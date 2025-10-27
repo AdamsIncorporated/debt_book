@@ -1,37 +1,50 @@
 import React, { useState } from "react";
-import * as XLSX from "xlsx";
+import ExcelJS from "exceljs";
 
 export interface DebtMaturity {
-  id: number;
-  maturity_date: string;     // ISO date string, e.g. "2025-12-31"
-  amount: number;            // corresponds to numeric(18,2)
-  rate: number;              // corresponds to numeric(5,4)
-  yield: number;             // corresponds to numeric(5,4)
-  price: number;             // corresponds to numeric(10,4)
-  created_at: string;        // ISO timestamp, e.g. "2025-10-27T13:45:00"
+  id?: number;
+  maturity_date: string;
+  amount: number;
+  rate: number;
+  yield: number;
+  price: number;
+  created_at?: string;
 }
 
 interface DebtMaturityFormProps {
   onNext: () => void;
   onBack: () => void;
-  onSubmitData?: (rows: DebtMaturity[]) => void; // optional for backend submission
+  onSubmitData?: (rows: DebtMaturity[]) => void;
 }
 
 const MaturityForm: React.FC<DebtMaturityFormProps> = ({ onNext, onBack, onSubmitData }) => {
   const [data, setData] = useState<DebtMaturity[]>([]);
 
-  // Download Excel template
-  const handleDownloadTemplate = () => {
-    const worksheet = XLSX.utils.json_to_sheet([
-      { maturity_date: "YYYY-MM-DD", amount: 0, rate: 0, yield: 0, price: 0 },
-    ]);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "MaturityTemplate");
+  // Download template
+  const handleDownloadTemplate = async () => {
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet("MaturityTemplate");
 
-    const excelBuffer = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
-    const blob = new Blob([excelBuffer], { type: "application/octet-stream" });
+    worksheet.columns = [
+      { header: "Maturity Date", key: "maturity_date" },
+      { header: "Amount", key: "amount" },
+      { header: "Rate", key: "rate" },
+      { header: "Yield", key: "yield" },
+      { header: "Price", key: "price" },
+    ];
 
+    worksheet.addRow({
+      maturity_date: "YYYY-MM-DD",
+      amount: 0,
+      rate: 0,
+      yield: 0,
+      price: 0,
+    });
+
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], { type: "application/octet-stream" });
     const url = URL.createObjectURL(blob);
+
     const a = document.createElement("a");
     a.href = url;
     a.download = "DebtMaturityTemplate.xlsx";
@@ -40,26 +53,33 @@ const MaturityForm: React.FC<DebtMaturityFormProps> = ({ onNext, onBack, onSubmi
   };
 
   // Upload Excel file
-  const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const reader = new FileReader();
-    reader.onload = (evt) => {
-      const bstr = evt.target?.result;
-      const wb = XLSX.read(bstr, { type: "binary" });
-      const wsname = wb.SheetNames[0];
-      const ws = wb.Sheets[wsname];
-      const jsonData: DebtMaturity[] = XLSX.utils.sheet_to_json(ws);
-      setData(jsonData);
-    };
-    reader.readAsBinaryString(file);
+    const workbook = new ExcelJS.Workbook();
+    await workbook.xlsx.load(await file.arrayBuffer());
+    const worksheet = workbook.worksheets[0];
+
+    const rows: DebtMaturity[] = [];
+    worksheet.eachRow((row, rowNumber) => {
+      if (rowNumber === 1) return; // skip header
+      const rowValues = row.values as (string | number | undefined)[];
+      const [maturity_date, amount, rate, yieldValue, price] = rowValues.slice(1);
+      rows.push({
+        maturity_date: maturity_date?.toString() || "",
+        amount: Number(amount ?? 0),
+        rate: Number(rate ?? 0),
+        yield: Number(yieldValue ?? 0),
+        price: Number(price ?? 0),
+      });
+    });
+
+    setData(rows);
   };
 
   const handleSubmitData = () => {
-    if (onSubmitData) {
-      onSubmitData(data);
-    }
+    if (onSubmitData) onSubmitData(data);
     onNext();
   };
 
