@@ -1,49 +1,67 @@
-// server.js (or server.ts)
-const fs = require("fs");
-const toml = require("toml");
-const http = require("http");
-const snowflake = require("snowflake-sdk");
+// server.ts
+import fs from "fs";
+import http, { IncomingMessage, ServerResponse } from "http";
+import toml from "toml";
+import { Pool, PoolClient, QueryResult } from "pg";
 
-// Read and parse TOML
+// --- Define types for TOML config ---
+interface PostgresConfig {
+  host: string;
+  port?: number;
+  user: string;
+  password: string;
+  database: string;
+  ssl?: boolean;
+}
+
+interface AppConfig {
+  postgres: PostgresConfig;
+}
+
+// --- Read and parse TOML config ---
 const tomlData = fs.readFileSync("./secrets.toml", "utf-8");
-const config = toml.parse(tomlData).snowflake;
+const parsedConfig = toml.parse(tomlData) as AppConfig;
+const config = parsedConfig.postgres;
 
-// Create Snowflake connection
-const connection = snowflake.createConnection({
-    account: config.account,
-    username: config.user,
-    authenticator: "externalbrowser",
-    warehouse: config.warehouse,
-    database: config.database,
-    schema: config.schema,
-    role: config.role,
+// --- Create PostgreSQL connection pool ---
+const pool = new Pool({
+  host: config.host,
+  port: config.port ?? 5432,
+  user: config.user,
+  password: config.password,
+  database: config.database,
+  ssl: config.ssl ?? false,
 });
 
-// Connect
-connection.connectAsync((err: any) => {
-    if (err) console.error("Unable to connect:", err.message);
-    else console.log("Connected to Snowflake!");
-});
+// --- Verify connection ---
+(async () => {
+  try {
+    const client: PoolClient = await pool.connect();
+    console.log("✅ Connected to PostgreSQL!");
+    client.release();
+  } catch (err: any) {
+    console.error("❌ Unable to connect:", err.message);
+  }
+})();
 
-// Simple HTTP server
-const server = http.createServer((req: any, res: any) => {
-    if (req.url === "/api/data") {
-        connection.execute({
-            sqlText: "CALL INSERT_COMMAND(JSON_OBJ)",
-            complete: (err: any, stmt: any, rows: any) => {
-                if (err) {
-                    res.writeHead(500, { "Content-Type": "application/json" });
-                    res.end(JSON.stringify({ error: err.message }));
-                } else {
-                    res.writeHead(200, { "Content-Type": "application/json" });
-                    res.end(JSON.stringify(rows));
-                }
-            },
-        });
-    } else {
-        res.writeHead(404, { "Content-Type": "text/plain" });
-        res.end("Not Found");
+// --- Create HTTP server ---
+const server = http.createServer(async (req: IncomingMessage, res: ServerResponse) => {
+  if (req.url === "/api/data" && req.method === "GET") {
+    try {
+      const result: QueryResult = await pool.query("SELECT * FROM tbl_debt_maturity LIMIT 10;");
+
+      res.writeHead(200, { "Content-Type": "application/json" });
+      res.end(JSON.stringify(result.rows));
+    } catch (err: any) {
+      res.writeHead(500, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ error: err.message }));
     }
+  } else {
+    res.writeHead(404, { "Content-Type": "text/plain" });
+    res.end("Not Found");
+  }
 });
 
-server.listen(5000, () => console.log("Server running on http://localhost:5000"));
+// --- Start the server ---
+const PORT = 5000;
+server.listen(PORT, () => console.log(`🚀 Server running at http://localhost:${PORT}`));
