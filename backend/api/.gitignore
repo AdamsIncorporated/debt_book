@@ -1,0 +1,48 @@
+# ---- Rust / Cargo ----
+/target/
+/Cargo.lock
+
+# If you are building a library, you may want to include Cargo.lock.
+# Uncomment below to track it for libraries.
+# !Cargo.lock
+
+# ---- Rust tooling ----
+**/*.rs.bk
+
+# ---- IDEs and Editors ----
+
+# VS Code
+.vscode/
+*.code-workspace
+
+# IntelliJ / CLion / RustRover
+.idea/
+
+# Sublime Text
+*.sublime-workspace
+*.sublime-project
+
+# vim
+*~
+*.swp
+*.swo
+
+# emacs
+*~
+
+# ---- OS / System ----
+.DS_Store
+Thumbs.db
+
+# ---- Logs ----
+*.log
+
+# ---- Environment ----
+.env
+.env.*
+!.env.example
+
+# ---- Build Artifacts ----
+/dist/
+/out/
+/build/
