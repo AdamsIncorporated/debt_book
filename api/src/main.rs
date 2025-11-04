@@ -1,4 +1,5 @@
-use actix_web::{App, HttpResponse, HttpServer, Responder, get, post, web};
+use actix_cors::Cors;
+use actix_web::{App, HttpResponse, HttpServer, Responder, post, web};
 use anyhow::{Context, Result};
 use odbc_api::ConnectionOptions;
 use odbc_api::Cursor;
@@ -11,11 +12,17 @@ use tokio::task;
 
 #[derive(Debug, Deserialize, Clone)]
 struct Config {
+    snowflake: SnowflakeConfig,
+}
+
+#[derive(Debug, Deserialize, Clone)]
+struct SnowflakeConfig {
     driver: String,
     account: String,
     user: String,
     authenticator: String,
     role: String,
+    password: String,
 }
 
 impl Config {
@@ -28,11 +35,16 @@ impl Config {
 
     /// Build an ODBC connection string for Snowflake using the provided fields.
     fn to_connection_string(&self) -> String {
-        let server = format!("{}.snowflakecomputing.com", self.account);
+        let server = format!("{}.snowflakecomputing.com", self.snowflake.account);
 
         format!(
-            "Driver={{{}}};Server={};UID={};Role={};",
-            self.driver, server, self.user, self.role
+            "Driver={{{}}};Server={};UID={};Role={};Authenticator={};PWD={};",
+            self.snowflake.driver,
+            server,
+            self.snowflake.user,
+            self.snowflake.role,
+            self.snowflake.authenticator,
+            self.snowflake.password
         )
     }
 }
@@ -50,7 +62,7 @@ async fn main() -> std::io::Result<()> {
     env_logger::init();
 
     // Load configuration (change path if needed).
-    let secrets = Config::from_file("C:\\Projects\\debt_book\\api\\secrets.toml")
+    let secrets = Config::from_file("./secrets.toml")
         .expect("Failed to load config.toml; ensure file exists and is valid TOML");
 
     let conn_str = secrets.to_connection_string();
@@ -88,12 +100,9 @@ async fn main() -> std::io::Result<()> {
     let shared_data = web::Data::new(state);
 
     HttpServer::new(move || {
-        App::new()
-            .app_data(shared_data.clone())
-            .service(health)
-            .service(run_query) // simple POST endpoint to run a query
+        App::new().app_data(shared_data.clone()).service(run_query) // simple POST endpoint to run a query
     })
-    .bind(("127.0.0.1", 8080))?
+    .bind(("127.0.0.1", 5000))?
     .run()
     .await
 }
@@ -120,11 +129,6 @@ fn test_connection_and_run_test(state: &AppState) -> Result<bool> {
         }
     }
     return Ok(false);
-}
-
-#[get("/health")]
-async fn health() -> impl Responder {
-    HttpResponse::Ok().body("ok")
 }
 
 /// JSON body for query requests: { "sql": "SELECT ... LIMIT 10" }
