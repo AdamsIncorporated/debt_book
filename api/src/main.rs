@@ -99,8 +99,17 @@ async fn main() -> std::io::Result<()> {
     // Start HTTP server
     let shared_data = web::Data::new(state);
 
+    let cors = Cors::default()
+        .allow_any_origin()
+        .allow_any_method()
+        .allow_any_header()
+        .max_age(3600);
+
     HttpServer::new(move || {
-        App::new().app_data(shared_data.clone()).service(run_query) // simple POST endpoint to run a query
+        App::new()
+            .wrap(cors)
+            .app_data(shared_data.clone())
+            .service(run_query)
     })
     .bind(("127.0.0.1", 5000))?
     .run()
