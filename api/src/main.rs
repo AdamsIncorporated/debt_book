@@ -1,8 +1,9 @@
 use actix_web::{App, HttpResponse, HttpServer, Responder, get, post, web};
 use anyhow::{Context, Result};
 use odbc_api::ConnectionOptions;
+use odbc_api::Cursor;
 use odbc_api::Environment;
-use odbc_api::handles::Statement;
+use odbc_api::Nullable;
 use serde::Deserialize;
 use std::fs;
 use std::sync::Arc;
@@ -13,6 +14,7 @@ struct Config {
     driver: String,
     account: String,
     user: String,
+    authenticator: String,
     role: String,
 }
 
@@ -48,7 +50,7 @@ async fn main() -> std::io::Result<()> {
     env_logger::init();
 
     // Load configuration (change path if needed).
-    let secrets = Config::from_file("secerets.toml")
+    let secrets = Config::from_file("C:\\Projects\\debt_book\\api\\secrets.toml")
         .expect("Failed to load config.toml; ensure file exists and is valid TOML");
 
     let conn_str = secrets.to_connection_string();
@@ -96,9 +98,9 @@ async fn main() -> std::io::Result<()> {
     .await
 }
 
-fn test_connection_and_run_test(state: &AppState) -> Result<String> {
+fn test_connection_and_run_test(state: &AppState) -> Result<bool> {
     // Connect synchronously via ODBC and run a simple query
-    let mut conn = state
+    let conn = state
         .env
         .connect_with_connection_string(&state.conn_str, ConnectionOptions::default())
         .context("ODBC connect failed")?;
@@ -109,14 +111,15 @@ fn test_connection_and_run_test(state: &AppState) -> Result<String> {
         .execute(&sql, (), Some(5))
         .context("Failed to execute test query")?
     {
-        // fetch first row, first column
-        let mut row = cursor.fetch().context("fetch failed")?;
-        // column 1 as string
-        if let Some(val) = row.get_data::<String>(1).ok().flatten() {
-            return Ok(val);
+        // Fetch the first row using the iterator
+        if let Some(mut row) = cursor.next_row()? {
+            let mut field = Nullable::<i32>::null();
+            let val = row.get_data(0, &mut field);
+            let x = val.is_ok();
+            return Ok(x);
         }
     }
-    Ok("no-result".to_string())
+    return Ok(false);
 }
 
 #[get("/health")]
