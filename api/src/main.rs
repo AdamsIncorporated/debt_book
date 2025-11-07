@@ -1,5 +1,5 @@
 use actix_cors::Cors;
-use actix_web::{App, HttpResponse, HttpServer, Responder, post, web};
+use actix_web::{App, HttpResponse, HttpServer, Responder, http, post, web};
 use anyhow::{Context, Result};
 use odbc_api::ConnectionOptions;
 use odbc_api::Cursor;
@@ -99,13 +99,13 @@ async fn main() -> std::io::Result<()> {
     // Start HTTP server
     let shared_data = web::Data::new(state);
 
-    let cors = Cors::default()
-        .allow_any_origin()
-        .allow_any_method()
-        .allow_any_header()
-        .max_age(3600);
-
     HttpServer::new(move || {
+        let cors = Cors::default()
+            .allowed_origin("http://localhost:3000")
+            .allowed_methods(vec!["POST"])
+            .allowed_headers(vec![http::header::CONTENT_TYPE, http::header::ACCEPT])
+            .max_age(3600);
+
         App::new()
             .wrap(cors)
             .app_data(shared_data.clone())
