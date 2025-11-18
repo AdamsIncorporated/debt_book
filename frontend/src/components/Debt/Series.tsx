@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import ThemedInput from "../Form/ThemedInput";
+import ThemeNavButton from "../Form/ThemeNavButton";
 
 interface DebtSeriesFormProps {
     onSubmit: (data: {
@@ -32,6 +33,9 @@ const DebtSeriesForm: React.FC<DebtSeriesFormProps> = ({ onSubmit, onBack }) => 
                     onChange={(val) => handleChange("seriesName", val)}
                 />
             </form>
+            <div className="flex gap-4">
+                <ThemeNavButton onBack={() => onBack} onNext={() => handleSubmit} />
+            </div>
         </div>
     );
 };
