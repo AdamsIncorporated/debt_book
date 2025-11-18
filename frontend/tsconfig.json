@@ -3,7 +3,7 @@
         "target": "ESNext",
         "module": "ESNext",
         "moduleResolution": "Node",
-        "jsx": "react-jsx",
+        "jsx": "preserve",       // or remove this line entirely if you don't use JSX at all
         "strict": true,
         "esModuleInterop": true,
         "skipLibCheck": true,
@@ -13,8 +13,8 @@
         "baseUrl": "./src"
     },
     "include": [
-        "src"
-, "src/api"    ],
+        "src",
+    ],
     "exclude": [
         "node_modules",
         "dist"

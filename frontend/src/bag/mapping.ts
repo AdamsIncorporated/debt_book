@@ -8,11 +8,20 @@ export interface DebtService {
     createdAt?: Date;         // corresponds to CREATE_AT
 }
 
+// Mapping for DebtService
+export const DebtServiceColumnMap: Record<keyof DebtService, string> = {
+    id: "ID",
+    seriesId: "SERIES_ID",
+    periodEndDate: "PERIOD_END_DATE",
+    principal: "PRINCIPAL",
+    interest: "INTEREST",
+    createdAt: "CREATED_AT",
+};
+
 // Interface representing a row in TBL_DEBT_SERIES (for 1:many relationship)
 export interface DebtServiceRows {
     debtServices?: DebtService[]; // one-to-many relationship
 }
-
 
 // Interface representing a row in TBL_DEBT_SERIES
 export interface DebtSeries {
@@ -20,9 +29,20 @@ export interface DebtSeries {
     seriesName?: string;      // corresponds to SERIES_NAME
     isTaxExempt?: boolean;    // corresponds to IS_TAX_EXEMPT
     createdAt?: Date;         // corresponds to CREATE_AT
-    debtServices?: DebtService[]; // optional 1:many relationship
 }
 
-export interface SeriesRows {
-    debtSeries?: DebtSeries[]; // one-to-many relationship
+// Mapping for DebtSeries
+export const DebtSeriesColumnMap: Record<keyof DebtSeries, string> = {
+    id: "ID",
+    seriesName: "SERIES_NAME",
+    isTaxExempt: "IS_TAX_EXEMPT",
+    createdAt: "CREATED_AT",
+};
+
+export function mapToDbRow<T>(obj: T, columnMap: Record<string, string>): Record<string, any> {
+    const result: Record<string, any> = {};
+    for (const [key, value] of Object.entries(columnMap)) {
+        result[value] = obj[key as keyof T];
+    }
+    return result;
 }

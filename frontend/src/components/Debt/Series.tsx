@@ -32,7 +32,7 @@ const DebtSeriesForm: React.FC<DebtSeriesFormProps> = ({ onNext, onBack }) => {
                 />
             </form>
             <div className="my-2">
-                <ThemeNavButton onBack={onBack} onNext={handleSubmit} />
+                <ThemeNavButton onBack={onBack} onNext={onNext} />
             </div>
         </div>
     );

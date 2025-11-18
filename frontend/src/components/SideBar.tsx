@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { Sidebar, Menu, MenuItem, SubMenu } from 'react-pro-sidebar';
 import { GoSidebarCollapse  } from "react-icons/go";
 import SeriesForm from './Debt/Series';
-import MaturityForm from './Debt/Maturity';
 import DebtServiceForm from './Debt/DebtService';
 
 
@@ -15,11 +14,11 @@ const DebtSidebar: React.FC = () => {
             case 0:
                 return <SeriesForm onNext={() => setStep(1)} onBack={() => setStep(0)} />;
             case 1:
-                return <MaturityForm onNext={() => setStep(2)} onBack={() => setStep(1)} />;
+                return <DebtServiceForm onNext={() => setStep(2)} onBack={() => setStep(0)} />;
             case 2:
-                return <DebtServiceForm onNext={() => setStep(3)} onBack={() => setStep(2)} />;
+                return <div>Confirmation</div>;
             default:
-                return <div>Complete the sequence to proceed</div>;
+                return <div>You shouldnt see this.</div>;
         }
     };
 

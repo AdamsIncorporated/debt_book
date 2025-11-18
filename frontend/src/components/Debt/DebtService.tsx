@@ -33,14 +33,6 @@ const DebtServiceForm: React.FC<DebtServiceFormProps> = ({ onNext, onBack, onSub
       { header: "Debt Service", key: "debtService" },
     ];
 
-    worksheet.addRow({
-      periodEndDate: "YYYY-MM-DD",
-      principal: "0",
-      coupon: "0",
-      interest: "0",
-      debtService: "0",
-    });
-
     const buffer = await workbook.xlsx.writeBuffer();
     const blob = new Blob([buffer], { type: "application/octet-stream" });
     const url = URL.createObjectURL(blob);
@@ -84,14 +76,14 @@ const DebtServiceForm: React.FC<DebtServiceFormProps> = ({ onNext, onBack, onSub
   };
 
   return (
-    <div className="p-4 bg-sky-950 rounded-xl shadow-md w-full max-w-4xl mx-auto">
-      <h2 className="mb-6 text-xl font-semibold text-white">Debt Service Form</h2>
+    <div className="p-4 shadow-md w-full max-w-4xl mx-auto">
+      <h2 className="mb-6 text-xl font-semibold">Debt Service Form</h2>
 
       <div className="flex gap-4 mb-6">
         <button
           type="button"
           onClick={handleDownloadTemplate}
-          className="rounded-lg bg-sky-700 px-4 py-2 text-white font-semibold hover:bg-sky-600 transition-all duration-300"
+          className="px-4 py-2 font-semibold hover:bg-sky-600 transition-all duration-300"
         >
           Download Template
         </button>
@@ -99,14 +91,14 @@ const DebtServiceForm: React.FC<DebtServiceFormProps> = ({ onNext, onBack, onSub
           type="file"
           accept=".xlsx, .xls"
           onChange={handleUpload}
-          className="rounded-lg border border-sky-700 bg-sky-950/40 px-4 py-2 text-white cursor-pointer"
+          className="border px-4 py-2 cursor-pointer"
         />
       </div>
 
       {data.length > 0 && (
         <div className="overflow-x-auto mb-6">
           <table className="min-w-full table-auto border border-sky-700">
-            <thead className="bg-sky-800 text-white">
+            <thead className="bg-sky-800">
               <tr>
                 <th className="border border-sky-700 px-4 py-2">Period End Date</th>
                 <th className="border border-sky-700 px-4 py-2">Principal</th>
@@ -115,7 +107,7 @@ const DebtServiceForm: React.FC<DebtServiceFormProps> = ({ onNext, onBack, onSub
                 <th className="border border-sky-700 px-4 py-2">Debt Service</th>
               </tr>
             </thead>
-            <tbody className="bg-sky-950/40 text-white">
+            <tbody className="bg-sky-950/40">
               {data.map((row, idx) => (
                 <tr key={idx} className="hover:bg-sky-900">
                   <td className="border border-sky-700 px-4 py-2">{row.periodEndDate}</td>
