@@ -13,11 +13,11 @@ const DebtSidebar: React.FC = () => {
     const renderForm = () => {
         switch (step) {
             case 0:
-                return <SeriesForm onNext={() => setStep(3)} onBack={() => setStep(1)} />;
+                return <SeriesForm onNext={() => setStep(1)} onBack={() => setStep(0)} />;
             case 1:
-                return <MaturityForm onNext={() => setStep(4)} onBack={() => setStep(2)} />;
+                return <MaturityForm onNext={() => setStep(2)} onBack={() => setStep(1)} />;
             case 2:
-                return <DebtServiceForm onNext={() => setStep(5)} onBack={() => setStep(4)} />;
+                return <DebtServiceForm onNext={() => setStep(3)} onBack={() => setStep(2)} />;
             default:
                 return <div>Complete the sequence to proceed</div>;
         }
