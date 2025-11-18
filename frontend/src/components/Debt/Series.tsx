@@ -3,13 +3,11 @@ import ThemedInput from "../Form/ThemedInput";
 import ThemeNavButton from "../Form/ThemeNavButton";
 
 interface DebtSeriesFormProps {
-    onSubmit: (data: {
-        seriesName: string;
-    }) => void;
-    onBack?: () => void;
+    onNext: () => void;
+    onBack: () => void;
 }
 
-const DebtSeriesForm: React.FC<DebtSeriesFormProps> = ({ onSubmit, onBack }) => {
+const DebtSeriesForm: React.FC<DebtSeriesFormProps> = ({ onNext, onBack }) => {
     const [formData, setFormData] = useState({
         seriesName: "",
     });
@@ -20,7 +18,7 @@ const DebtSeriesForm: React.FC<DebtSeriesFormProps> = ({ onSubmit, onBack }) => 
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        onSubmit(formData);
+        onNext();
     };
 
     return (
@@ -33,8 +31,8 @@ const DebtSeriesForm: React.FC<DebtSeriesFormProps> = ({ onSubmit, onBack }) => 
                     onChange={(val) => handleChange("seriesName", val)}
                 />
             </form>
-            <div className="flex gap-4">
-                <ThemeNavButton onBack={() => onBack} onNext={() => handleSubmit} />
+            <div className="my-2">
+                <ThemeNavButton onBack={onBack} onNext={handleSubmit} />
             </div>
         </div>
     );

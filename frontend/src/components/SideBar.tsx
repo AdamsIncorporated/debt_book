@@ -13,7 +13,7 @@ const DebtSidebar: React.FC = () => {
     const renderForm = () => {
         switch (step) {
             case 0:
-                return <SeriesForm onSubmit={() => setStep(3)} onBack={() => setStep(1)} />;
+                return <SeriesForm onNext={() => setStep(3)} onBack={() => setStep(1)} />;
             case 1:
                 return <MaturityForm onNext={() => setStep(4)} onBack={() => setStep(2)} />;
             case 2:
@@ -26,8 +26,8 @@ const DebtSidebar: React.FC = () => {
     return (
         <div className="h-screen flex">
             <Sidebar collapsed={collapsed} breakPoint='md'>
-                <div className='flex justify-end bg-sky-900'>
-                    <button onClick={() => setCollapsed(!collapsed)} className="hover:bg-sky-950 hover:cursor-pointer hover:text-white p-2">
+                <div className='flex justify-end bg-sky-600'>
+                    <button onClick={() => setCollapsed(!collapsed)} className="text-white hover:cursor-pointer p-2">
                         <GoSidebarCollapse />
                     </button>
                 </div>

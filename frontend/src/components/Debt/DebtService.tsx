@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import ExcelJS from "exceljs";
+import ThemeNavButton from "../Form/ThemeNavButton";
+
 
 export interface DebtServiceRow {
   periodEndDate: string;
@@ -76,7 +78,7 @@ const DebtServiceForm: React.FC<DebtServiceFormProps> = ({ onNext, onBack, onSub
     setData(rows);
   };
 
-  const handleSubmitData = () => {
+  const handleSubmit = () => {
     if (onSubmitData) onSubmitData(data);
     onNext();
   };
@@ -127,22 +129,8 @@ const DebtServiceForm: React.FC<DebtServiceFormProps> = ({ onNext, onBack, onSub
           </table>
         </div>
       )}
-
-      <div className="flex gap-4">
-        <button
-          type="button"
-          onClick={onBack}
-          className="flex-1 rounded-lg border border-sky-700 bg-sky-800 px-4 py-2 text-white font-semibold transition-all duration-300 hover:bg-sky-700"
-        >
-          Back
-        </button>
-        <button
-          type="button"
-          onClick={handleSubmitData}
-          className="flex-1 rounded-lg bg-sky-700 px-4 py-2 text-white font-semibold transition-all duration-300 hover:bg-sky-600 active:bg-sky-800 focus:ring-2 focus:ring-sky-500"
-        >
-          Next
-        </button>
+      <div className="my-2">
+        <ThemeNavButton onBack={onBack} onNext={handleSubmit} />
       </div>
     </div>
   );
