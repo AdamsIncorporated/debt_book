@@ -4,7 +4,7 @@ import { IoIosArrowRoundBack } from "react-icons/io";
 
 interface ThemeNavButtonProps {
   onBack: () => void;
-  onNext: () => void;
+  onNext: (e: React.FormEvent) => void;
 }
 
 const ThemeNavButton: React.FC<ThemeNavButtonProps> = ({ onBack, onNext }) => {
@@ -29,6 +29,6 @@ const ThemeNavButton: React.FC<ThemeNavButtonProps> = ({ onBack, onNext }) => {
       </button>
     </div>
   );
-}
+};
 
 export default ThemeNavButton;
