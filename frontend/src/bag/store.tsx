@@ -8,7 +8,7 @@ import React, {
 
 // Define the type of items in the bag
 interface Item {
-  id: number;
+  id: string;
   name: string;
 }
 
@@ -18,7 +18,7 @@ type State = {
 
 type Action =
   | { type: "ADD_ITEM"; payload: Item }
-  | { type: "REMOVE_ITEM"; payload: number }
+  | { type: "REMOVE_ITEM"; payload: string }
   | { type: "CLEAR_BAG" };
 
 const initialState: State = {
@@ -30,7 +30,7 @@ const BagContext = createContext<{
   dispatch: React.Dispatch<Action>;
 } | null>(null);
 
-// Reducer function (like Redux)
+// Reducer function
 function bagReducer(state: State, action: Action): State {
   switch (action.type) {
     case "ADD_ITEM":

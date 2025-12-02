@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import ThemedInput from "../Form/ThemedInput";
 import ThemeNavButton from "../Form/ThemeNavButton";
 import { addUpdateRowsToBag } from "bag/bag";
+import { useBag } from "bag/store";
 
 interface DebtSeriesFormProps {
   onNext: () => void;
@@ -10,7 +11,8 @@ interface DebtSeriesFormProps {
 
 const DebtSeriesForm: React.FC<DebtSeriesFormProps> = ({ onNext, onBack }) => {
   const [formData, setFormData] = useState({ seriesName: "" });
-  const [error, setError] = useState(""); // <-- New state for error message
+  const [error, setError] = useState("");
+  const { state, dispatch } = useBag();
 
   const handleChange = (field: keyof typeof formData, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -31,9 +33,12 @@ const DebtSeriesForm: React.FC<DebtSeriesFormProps> = ({ onNext, onBack }) => {
     // Clear any previous errors and go to next
     setError("");
 
-    // addUpdateRowsToBag("debt_series", [formData], {
-    //   seriesName: "series_name",
-    // });
+    // Simple Unique Id
+    const uuid = crypto.randomUUID();
+    dispatch({
+      type: "ADD_ITEM",
+      payload: { id: uuid, name: formData.seriesName },
+    });
 
     onNext();
   };
