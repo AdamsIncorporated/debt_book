@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import ThemedInput from "../Form/ThemedInput";
 import ThemeNavButton from "../Form/ThemeNavButton";
+import { addUpdateRowsToBag } from "bag/bag";
 
 interface DebtSeriesFormProps {
   onNext: () => void;
@@ -29,6 +30,11 @@ const DebtSeriesForm: React.FC<DebtSeriesFormProps> = ({ onNext, onBack }) => {
 
     // Clear any previous errors and go to next
     setError("");
+
+    // addUpdateRowsToBag("debt_series", [formData], {
+    //   seriesName: "series_name",
+    // });
+
     onNext();
   };
 
