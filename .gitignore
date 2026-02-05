@@ -1,0 +1,7 @@
+node_modules/
+dist/
+secrets.toml
+.DS_Store
+snowflake.log
+.env
+private_key.pem
