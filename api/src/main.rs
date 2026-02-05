@@ -7,7 +7,7 @@ use std::{fs, sync::Arc};
 use tokio::task;
 pub mod endpoints;
 pub mod structs;
-use endpoints::get::{get_all_debt_series, get_series_names, test_connection};
+use endpoints::scopes::{delete_scope, get_scope, patch_scope, post_scope, test_connection};
 
 #[derive(Debug, Deserialize, Clone)]
 struct Config {
@@ -85,8 +85,10 @@ async fn main() -> std::io::Result<()> {
                     .max_age(3600),
             )
             .app_data(shared_data.clone())
-            .service(get_series_names)
-            .service(get_all_debt_series)
+            .service(get_scope())
+            .service(post_scope())
+            .service(patch_scope())
+            .service(delete_scope())
     })
     .bind(("127.0.0.1", 5000))?
     .run()

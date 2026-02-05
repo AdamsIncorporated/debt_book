@@ -8,27 +8,7 @@ use anyhow::{Context, Ok, Result};
 use odbc_api::{ConnectionOptions, Cursor, Nullable};
 use tokio::task;
 
-pub fn test_connection(state: &AppState) -> Result<()> {
-    let conn = state
-        .env
-        .connect_with_connection_string(&state.conn_str, ConnectionOptions::default())?;
-    let sql = "SELECT CURRENT_VERSION()";
-
-    if let Some(mut cursor) = conn
-        .execute(sql, (), Some(1))
-        .context("Failed to execute test query")?
-    {
-        // cursor.next_row() -> Result<Option<CursorRow>, Error>
-        if cursor.next_row()?.is_some() {
-            log::info!("Connected to Snowflake successfully.");
-            return Ok(());
-        }
-    }
-
-    anyhow::bail!("Test query returned no rows");
-}
-
-#[get("/debt/get_all_series")]
+#[get("/get_all_series")]
 pub async fn get_all_debt_series(state: web::Data<AppState>) -> impl Responder {
     const COLUMN_ID: u16 = 1;
     const COLUMN_SERIES_NAME: u16 = 2;
@@ -62,9 +42,9 @@ pub async fn get_all_debt_series(state: web::Data<AppState>) -> impl Responder {
             {
                 while let Some(mut row) = cursor.next_row()? {
                     /* -------- column 1: id (Option<i64>) -------- */
-                    let mut id_buf = Nullable::<i64>::null();
+                    let mut id_buf = 0i64;
                     row.get_data(COLUMN_ID, &mut id_buf)?;
-                    let id = id_buf.into_opt();
+                    let id = id_buf;
 
                     /* -------- column 2: series_name (Vec<u8>, NOT NULL) -------- */
                     let mut series_name_buf = Vec::<u8>::with_capacity(SERIES_NAME_CAPACITY);
@@ -125,7 +105,7 @@ pub async fn get_all_debt_series(state: web::Data<AppState>) -> impl Responder {
     }
 }
 
-#[get("/debt/get_debt_series_by_id/{id}")]
+#[get("/get_debt_series_by_id/{id}")]
 pub async fn get_debt_series_by_id(
     state: web::Data<AppState>,
     path: web::Path<i64>,
@@ -162,10 +142,10 @@ pub async fn get_debt_series_by_id(
                 .context("Failed to call USP_DEBT_GET_DEBT_SERIES_BY_ID")?
             {
                 while let Some(mut row) = cursor.next_row()? {
-                    let id: Option<i64> = {
-                        let mut buf = Nullable::<i64>::null();
+                    let id: i64 = {
+                        let mut buf = 0i64;
                         row.get_data(COLUMN_ID, &mut buf)?;
-                        buf.into_opt()
+                        buf
                     };
 
                     let series_name: String = {
@@ -241,7 +221,7 @@ pub async fn get_debt_series_by_id(
     }
 }
 
-#[get("/debt/get_debt_series_service_by_id/{id}")]
+#[get("/get_debt_series_service_by_id/{id}")]
 pub async fn get_debt_series_service_by_id(
     state: web::Data<AppState>,
     path: web::Path<i64>,
@@ -276,10 +256,10 @@ pub async fn get_debt_series_service_by_id(
                 .context("Failed to call USP_DEBT_GET_DEBT_SERIES_SERVICE_BY_ID")?
             {
                 while let Some(mut row) = cursor.next_row()? {
-                    let id: Option<i64> = {
-                        let mut buf = Nullable::<i64>::null();
+                    let id: i64 = {
+                        let mut buf = 0i64;
                         row.get_data(COLUMN_ID, &mut buf)?;
-                        buf.into_opt()
+                        buf
                     };
 
                     let series_id: i64 = {
@@ -348,7 +328,7 @@ pub async fn get_debt_series_service_by_id(
     }
 }
 
-#[get("/debt/get_debt_series_pricing_by_id/{id}")]
+#[get("/get_debt_series_pricing_by_id/{id}")]
 pub async fn get_debt_series_pricing_by_id(
     state: web::Data<AppState>,
     path: web::Path<i64>,
@@ -386,16 +366,16 @@ pub async fn get_debt_series_pricing_by_id(
                 .context("Failed to call USP_DEBT_GET_DEBT_SERIES_PRICING_BY_ID")?
             {
                 while let Some(mut row) = cursor.next_row()? {
-                    let id: Option<i64> = {
-                        let mut buf = Nullable::<i64>::null();
+                    let id: i64 = {
+                        let mut buf = 0i64;
                         row.get_data(COLUMN_ID, &mut buf)?;
-                        buf.into_opt()
+                        buf
                     };
 
                     let series_id: i64 = {
-                        let mut buf = Nullable::<i64>::null();
+                        let mut buf = 0i64;
                         row.get_data(COLUMN_SERIES_ID, &mut buf)?;
-                        buf.into_opt().context("series_id is NULL but required")?
+                        buf
                     };
 
                     let maturity_date: String = {
@@ -479,7 +459,7 @@ pub async fn get_debt_series_pricing_by_id(
     }
 }
 
-#[get("/debt/get_series_names")]
+#[get("/get_series_names")]
 pub async fn get_series_names(state: web::Data<AppState>) -> impl Responder {
     let result: Result<Vec<SeriesNameList>> = task::spawn_blocking({
         let state = state.clone();

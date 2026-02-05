@@ -14,7 +14,7 @@ pub struct DebtSeriesPatchJson {
 
 #[derive(Serialize, Deserialize)]
 pub struct DebtSeries {
-    pub id: Option<i64>,
+    pub id: i64,
     pub series_name: String,
     pub is_tax_exempt: Option<bool>,
     pub par_amount: f64,
@@ -25,9 +25,9 @@ pub struct DebtSeries {
 
 #[derive(Serialize, Deserialize)]
 pub struct DebtPricing {
-    pub id: Option<i64>, // optional for inserts
+    pub id: i64,
     pub series_id: i64,
-    pub maturity_date: String, // YYYY-MM-DD
+    pub maturity_date: String,
     pub amount: f64,
     pub coupon_rate: f64,
     pub yield_rate: f64,
@@ -38,9 +38,9 @@ pub struct DebtPricing {
 
 #[derive(Serialize, Deserialize)]
 pub struct DebtService {
-    pub id: Option<i64>, // optional for inserts
+    pub id: i64,
     pub series_id: i64,
-    pub payment_date: String, // YYYY-MM-DD
+    pub payment_date: String,
     pub principal: Option<f64>,
     pub interest: Option<f64>,
     pub created_at: Option<String>,
