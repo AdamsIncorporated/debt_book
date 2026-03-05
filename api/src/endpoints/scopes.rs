@@ -4,7 +4,7 @@ use crate::endpoints::get::{
     get_all_debt_series, get_debt_series_by_id, get_debt_series_pricing_by_id,
     get_debt_series_service_by_id, get_series_names,
 };
-use crate::endpoints::patch::patch_series;
+use crate::endpoints::patch::{patch_debt_pricing, patch_debt_series, patch_debt_service};
 use crate::endpoints::post::post_series;
 use actix_web::{Scope, web};
 use anyhow::{Context, Ok, Result};
@@ -24,7 +24,10 @@ pub fn get_scope() -> Scope {
 }
 
 pub fn patch_scope() -> Scope {
-    web::scope("/patch").service(patch_series)
+    web::scope("/patch")
+        .service(patch_debt_series)
+        .service(patch_debt_pricing)
+        .service(patch_debt_service)
 }
 
 pub fn post_scope() -> Scope {

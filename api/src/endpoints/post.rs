@@ -1,5 +1,5 @@
 use crate::AppState;
-use crate::structs::post::DebtSeriesPostJson;
+use crate::structs::post::{DebtPricingPosts, DebtSeriesPost, DebtServicePosts};
 use actix_web::{HttpResponse, Responder, post, web};
 use anyhow::{Context, Ok};
 use odbc_api::IntoParameter;
@@ -8,10 +8,9 @@ use tokio::task;
 #[post("/post_series")]
 pub async fn post_series(
     state: web::Data<AppState>,
-    payload: web::Json<DebtSeriesPostJson>,
+    payload: web::Json<DebtSeriesPost>,
 ) -> impl Responder {
-    let json_str: String = serde_json::to_string(&payload.into_inner()).unwrap_or_default();
-
+    let payload = payload.into_inner();
     let result: anyhow::Result<String> = task::spawn_blocking({
         let state = state.clone();
         move || {
@@ -23,9 +22,16 @@ pub async fn post_series(
                 )
                 .context("ODBC connect failed")?;
 
-            let sql = "CALL USP_DEBT_INSERT_OBJECTS(parse_json(?))";
-            conn.execute(sql, &json_str.into_parameter(), None)
-                .context("Failed to call USP_DEBT_INSERT_OBJECTS")?;
+            let sql = "INSERT INTO TBL_DEBT_SERIES (SERIES_NAME, IS_TAX_EXEMPT, PAR_AMOUNT, PREMIUM, COST_OF_ISSUANCE) VALUES (?, ?, ?, ?, ?)";
+            let params = (
+                &payload.series_name.into_parameter(),
+                &payload.is_tax_exempt.into_parameter(),
+                &payload.par_amount.into_parameter(), 
+                &payload.premium.into_parameter(),
+                &payload.cost_of_issuance.unwrap_or(0.0).into_parameter(),
+            );
+            conn.execute(sql, params, None)
+                .context("Failed to post debt series.")?;
 
             Ok("Insert completed".to_string())
         }

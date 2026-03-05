@@ -1,8 +1,8 @@
 use crate::AppState;
-use crate::structs::patch::{DebtPricingPatch, DebtSeriesPatch, DebtServicePatch};
+use crate::structs::patch::{DebtPricingPatches, DebtSeriesPatch, DebtServicePatches};
 use actix_web::{HttpResponse, Responder, patch, web};
 use anyhow::Context;
-use serde_json::json;
+use odbc_api::IntoParameter;
 
 #[patch("/patch_debt_series")]
 pub async fn patch_debt_series(
@@ -22,41 +22,27 @@ pub async fn patch_debt_series(
                 )
                 .context("ODBC connect failed")?;
 
-            let mut sql = "UPDATE DebtSeries SET ".to_string();
-            let mut params: Vec<&dyn odbc_api::parameter::Parameter> = Vec::new();
+            // SQL with all columns
+            let sql = "
+                UPDATE TBL_DEBT_SERIES 
+                SET 
+                    SERIES_NAME = ?,
+                    IS_TAX_EXEMPT = ?, 
+                    PAR_AMOUNT = ?, 
+                    PREMIUM = ?, 
+                    COST_OF_ISSUANCE = ?, 
+                WHERE ID = ?";
 
-            if let Some(series_name) = &payload.series_name {
-                sql.push_str("series_name = ?, ");
-                params.push(series_name);
-            }
-            if let Some(is_tax_exempt) = payload.is_tax_exempt {
-                sql.push_str("is_tax_exempt = ?, ");
-                params.push(&is_tax_exempt);
-            }
-            if let Some(par_amount) = payload.par_amount {
-                sql.push_str("par_amount = ?, ");
-                params.push(&par_amount);
-            }
-            if let Some(premium) = payload.premium {
-                sql.push_str("premium = ?, ");
-                params.push(&premium);
-            }
-            if let Some(cost_of_issuance) = payload.cost_of_issuance {
-                sql.push_str("cost_of_issuance = ?, ");
-                params.push(&cost_of_issuance);
-            }
+            let params = (
+                &payload.series_name.into_parameter(),
+                &payload.is_tax_exempt.into_parameter(),
+                &payload.par_amount.into_parameter(),
+                &payload.premium.into_parameter(),
+                &payload.cost_of_issuance.into_parameter(),
+                &payload.id.into_parameter(),
+            );
 
-            if params.is_empty() {
-                anyhow::bail!("No fields provided to update");
-            }
-
-            // remove last comma
-            sql.truncate(sql.len() - 2);
-            sql.push_str(" WHERE id = ?");
-            params.push(&payload.id);
-
-            conn.execute(&sql, &params)
-                .context("Failed to update DebtSeries")?;
+            conn.execute(sql, params, None)?;
             Ok("DebtSeries updated successfully".to_string())
         }
     })
@@ -64,7 +50,7 @@ pub async fn patch_debt_series(
     .unwrap_or_else(|e| Err(anyhow::anyhow!(e)));
 
     match result {
-        Ok(msg) => HttpResponse::Ok().json(json!({ "message": msg })),
+        Ok(msg) => HttpResponse::Ok().json(serde_json::json!({ "message": msg })),
         Err(e) => {
             log::error!("DebtSeries patch failed: {:?}", e);
             HttpResponse::InternalServerError().body("DebtSeries patch failed")
@@ -72,85 +58,10 @@ pub async fn patch_debt_series(
     }
 }
 
-#[patch("/patch_debt_pricing")]
-pub async fn patch_debt_pricing(
-    state: web::Data<AppState>,
-    payload: web::Json<DebtPricingPatch>,
-) -> impl Responder {
-    let payload = payload.into_inner();
-
-    let result: anyhow::Result<String> = tokio::task::spawn_blocking({
-        let state = state.clone();
-        move || {
-            let conn = state
-                .env
-                .connect_with_connection_string(
-                    &state.conn_str,
-                    odbc_api::ConnectionOptions::default(),
-                )
-                .context("ODBC connect failed")?;
-
-            let mut sql = "UPDATE DebtPricing SET ".to_string();
-            let mut params: Vec<&dyn odbc_api::parameter::Parameter> = Vec::new();
-
-            if let Some(maturity_date) = &payload.maturity_date {
-                sql.push_str("maturity_date = ?, ");
-                params.push(maturity_date);
-            }
-            if let Some(amount) = payload.amount {
-                sql.push_str("amount = ?, ");
-                params.push(&amount);
-            }
-            if let Some(coupon_rate) = payload.coupon_rate {
-                sql.push_str("coupon_rate = ?, ");
-                params.push(&coupon_rate);
-            }
-            if let Some(yield_rate) = payload.yield_rate {
-                sql.push_str("yield_rate = ?, ");
-                params.push(&yield_rate);
-            }
-            if let Some(price) = payload.price {
-                sql.push_str("price = ?, ");
-                params.push(&price);
-            }
-            if let Some(premium_discount) = payload.premium_discount {
-                sql.push_str("premium_discount = ?, ");
-                params.push(&premium_discount);
-            }
-            if let Some(created_at) = &payload.created_at {
-                sql.push_str("created_at = ?, ");
-                params.push(created_at);
-            }
-
-            if params.is_empty() {
-                anyhow::bail!("No fields provided to update");
-            }
-
-            sql.truncate(sql.len() - 2); // remove last comma
-            sql.push_str(" WHERE id = ?");
-            params.push(&payload.id);
-
-            conn.execute(&sql, &params)
-                .context("Failed to update DebtPricing")?;
-            Ok("DebtPricing updated successfully".to_string())
-        }
-    })
-    .await
-    .unwrap_or_else(|e| Err(anyhow::anyhow!(e)));
-
-    match result {
-        Ok(msg) => HttpResponse::Ok().json(json!({ "message": msg })),
-        Err(e) => {
-            log::error!("DebtPricing patch failed: {:?}", e);
-            HttpResponse::InternalServerError().body("DebtPricing patch failed")
-        }
-    }
-}
-
 #[patch("/patch_debt_service")]
 pub async fn patch_debt_service(
     state: web::Data<AppState>,
-    payload: web::Json<DebtServicePatch>,
+    payload: web::Json<DebtServicePatches>,
 ) -> impl Responder {
     let payload = payload.into_inner();
 
@@ -165,36 +76,24 @@ pub async fn patch_debt_service(
                 )
                 .context("ODBC connect failed")?;
 
-            let mut sql = "UPDATE DebtService SET ".to_string();
-            let mut params: Vec<&dyn odbc_api::parameter::Parameter> = Vec::new();
+            // SQL with all columns
+            let sql = "
+                UPDATE TBL_DEBT_SERVICE 
+                SET 
+                    PAYMENT_DATE = ?, 
+                    PRINCIPAL = ?, 
+                    INTEREST = ?, 
+                WHERE ID = ?";
 
-            if let Some(payment_date) = &payload.payment_date {
-                sql.push_str("payment_date = ?, ");
-                params.push(payment_date);
+            for patch in payload.patches {
+                let params = (
+                    &patch.payment_date.into_parameter(),
+                    &patch.principal.into_parameter(),
+                    &patch.interest.into_parameter(),
+                    &patch.id.into_parameter(),
+                );
+                conn.execute(sql, params, None)?;
             }
-            if let Some(principal) = payload.principal {
-                sql.push_str("principal = ?, ");
-                params.push(&principal);
-            }
-            if let Some(interest) = payload.interest {
-                sql.push_str("interest = ?, ");
-                params.push(&interest);
-            }
-            if let Some(created_at) = &payload.created_at {
-                sql.push_str("created_at = ?, ");
-                params.push(created_at);
-            }
-
-            if params.is_empty() {
-                anyhow::bail!("No fields provided to update");
-            }
-
-            sql.truncate(sql.len() - 2); // remove last comma
-            sql.push_str(" WHERE id = ?");
-            params.push(&payload.id);
-
-            conn.execute(&sql, &params)
-                .context("Failed to update DebtService")?;
             Ok("DebtService updated successfully".to_string())
         }
     })
@@ -202,10 +101,68 @@ pub async fn patch_debt_service(
     .unwrap_or_else(|e| Err(anyhow::anyhow!(e)));
 
     match result {
-        Ok(msg) => HttpResponse::Ok().json(json!({ "message": msg })),
+        Ok(msg) => HttpResponse::Ok().json(serde_json::json!({ "message": msg })),
         Err(e) => {
             log::error!("DebtService patch failed: {:?}", e);
             HttpResponse::InternalServerError().body("DebtService patch failed")
+        }
+    }
+}
+
+#[patch("/patch_debt_pricing")]
+pub async fn patch_debt_pricing(
+    state: web::Data<AppState>,
+    payload: web::Json<DebtPricingPatches>,
+) -> impl Responder {
+    let payload = payload.into_inner();
+
+    let result: anyhow::Result<String> = tokio::task::spawn_blocking({
+        let state = state.clone();
+        move || {
+            let conn = state
+                .env
+                .connect_with_connection_string(
+                    &state.conn_str,
+                    odbc_api::ConnectionOptions::default(),
+                )
+                .context("ODBC connect failed")?;
+
+            // SQL with all columns
+            let sql = "
+                UPDATE TBL_DEBT_PRICING
+                SET 
+                    MARURITY_DATE = ?,
+                    AMOUNT = ?, 
+                    COUPON_RATE = ?, 
+                    YIELD_RATE = ?, 
+                    PRICE = ?, 
+                    PREMIUM_DISCOUNT = ?, 
+                WHERE ID = ?";
+
+            for patch in payload.patches {
+                let params = (
+                    &patch.maturity_date.into_parameter(),
+                    &patch.amount.into_parameter(),
+                    &patch.coupon_rate.into_parameter(),
+                    &patch.yield_rate.into_parameter(),
+                    &patch.price.into_parameter(),
+                    &patch.premium_discount.into_parameter(),
+                    &patch.id.into_parameter(),
+                );
+                conn.execute(sql, params, None)?;
+            }
+
+            Ok("DebtPricing updated successfully".to_string())
+        }
+    })
+    .await
+    .unwrap_or_else(|e| Err(anyhow::anyhow!(e)));
+
+    match result {
+        Ok(msg) => HttpResponse::Ok().json(serde_json::json!({ "message": msg })),
+        Err(e) => {
+            log::error!("DebtPricing patch failed: {:?}", e);
+            HttpResponse::InternalServerError().body("DebtPricing patch failed")
         }
     }
 }
