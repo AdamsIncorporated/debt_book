@@ -11,7 +11,7 @@ pub struct DebtSeriesPost {
 
 #[derive(Serialize, Deserialize)]
 pub struct DebtPricingPosts {
-    posts: Vec<DebtPricingPost>,
+    pub posts: Vec<DebtPricingPost>,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -25,8 +25,9 @@ pub struct DebtPricingPost {
     pub premium_discount: Option<f64>,
 }
 
+#[derive(Serialize, Deserialize)]
 pub struct DebtServicePosts {
-    posts: Vec<DebtServicePost>,
+    pub posts: Vec<DebtServicePost>,
 }
 
 #[derive(Serialize, Deserialize)]
