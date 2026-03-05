@@ -1,6 +1,5 @@
 use serde::{Deserialize, Serialize};
 
-
 /// PATCH version of DebtSeries (top-level)
 #[derive(Serialize, Deserialize)]
 pub struct DebtSeriesPatch {
@@ -18,8 +17,7 @@ pub struct DebtSeriesPatch {
 /// PATCH version of DebtPricing (child table)
 #[derive(Serialize, Deserialize)]
 pub struct DebtPricingPatch {
-    /// Optional for insert, required for update/delete
-    pub id: Option<i64>,
+    pub id: i64,
     pub series_id: i64,
 
     /// Optional fields for PATCH
@@ -32,22 +30,16 @@ pub struct DebtPricingPatch {
 
     /// Optional: for auditing / read-only
     pub created_at: Option<String>,
-
-    /// Operation type: "insert" | "update" | "delete"
-    pub op: String,
 }
 
 /// PATCH version of DebtService (child table)
 #[derive(Serialize, Deserialize)]
 pub struct DebtServicePatch {
-    pub id: Option<i64>, // optional for insert
+    pub id: i64,
     pub series_id: i64,
 
     pub payment_date: Option<String>,
     pub principal: Option<f64>,
     pub interest: Option<f64>,
     pub created_at: Option<String>,
-
-    /// Operation type: "insert" | "update" | "delete"
-    pub op: String,
 }
