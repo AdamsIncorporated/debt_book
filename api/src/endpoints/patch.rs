@@ -5,8 +5,8 @@ use anyhow::{Context, Ok};
 use odbc_api::IntoParameter;
 use tokio::task;
 
-#[put("/debt/patch")]
-pub async fn patch(
+#[put("/patch_series")]
+pub async fn patch_series(
     state: web::Data<AppState>,
     payload: web::Json<DebtSeriesPatchJson>,
 ) -> impl Responder {
@@ -23,9 +23,9 @@ pub async fn patch(
                 )
                 .context("ODBC connect failed")?;
 
-            let sql = "CALL USP_DEBT_UPDATE_OBJECTS(parse_json(?))";
+            let sql = "CALL USP_DEBT_PATCH_OBJECTS(parse_json(?))";
             conn.execute(sql, &json_str.into_parameter(), None)
-                .context("Failed to call USP_DEBT_UPDATE_OBJECTS")?;
+                .context("Failed to call USP_DEBT_PATCH_OBJECTS")?;
 
             Ok("Update completed".to_string())
         }

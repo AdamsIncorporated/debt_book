@@ -121,7 +121,7 @@ pub async fn get_debt_series_by_id(
     const SERIES_NAME_CAPACITY: usize = 100;
     const CREATED_AT_CAPACITY: usize = 50;
 
-    const SQL_GET_ALL_SERIES: &str = "CALL USP_DEBT_GET_DEBT_SERIES_BY_ID(?)";
+    const SQL_GET_ALL_SERIES: &str = "SELECT * FROM TBL_DEBT_SERIES WHERE ID = ?";
 
     let result: anyhow::Result<Vec<DebtSeries>> = task::spawn_blocking({
         let state = state.clone();
@@ -139,7 +139,9 @@ pub async fn get_debt_series_by_id(
 
             if let Some(mut cursor) = conn
                 .execute(SQL_GET_ALL_SERIES, (&series_id,), None)
-                .context("Failed to call USP_DEBT_GET_DEBT_SERIES_BY_ID")?
+                .context(
+                    "Failed to execute get `SELECT * FROM TBL_DEBT_SERIES WHERE ID = ?` SQL query",
+                )?
             {
                 while let Some(mut row) = cursor.next_row()? {
                     let id: i64 = {

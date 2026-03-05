@@ -1,60 +1,14 @@
 use actix_cors::Cors;
 use actix_web::{App, HttpServer, http, web};
-use anyhow::{Context, Result};
 use odbc_api::Environment;
-use serde::Deserialize;
-use std::{fs, sync::Arc};
+use std::sync::Arc;
 use tokio::task;
+pub mod config;
 pub mod endpoints;
 pub mod structs;
+pub mod tests;
+use crate::config::{AppState, Config};
 use endpoints::scopes::{delete_scope, get_scope, patch_scope, post_scope, test_connection};
-
-#[derive(Debug, Deserialize, Clone)]
-struct Config {
-    snowflake: SnowflakeConfig,
-}
-
-#[derive(Debug, Deserialize, Clone)]
-struct SnowflakeConfig {
-    driver: String,
-    account: String,
-    user: String,
-    authenticator: String,
-    role: String,
-    password: String,
-    database: String,
-    schema: String,
-    warehouse: String,
-}
-
-impl Config {
-    fn from_file(path: &str) -> Result<Self> {
-        let s = fs::read_to_string(path)
-            .with_context(|| format!("Failed to read config file: {}", path))?;
-        Ok(toml::from_str(&s).context("Failed to parse TOML config")?)
-    }
-
-    fn to_connection_string(&self) -> String {
-        format!(
-            "Driver={{{}}};Server={}.snowflakecomputing.com;UID={};Role={};Authenticator={};PWD={};Database={};Schema={};Warehouse={};",
-            self.snowflake.driver,
-            self.snowflake.account,
-            self.snowflake.user,
-            self.snowflake.role,
-            self.snowflake.authenticator,
-            self.snowflake.password,
-            self.snowflake.database,
-            self.snowflake.schema,
-            self.snowflake.warehouse
-        )
-    }
-}
-
-#[derive(Clone)]
-pub struct AppState {
-    env: Arc<Environment>,
-    conn_str: String,
-}
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {

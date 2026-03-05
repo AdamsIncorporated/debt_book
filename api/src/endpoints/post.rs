@@ -5,8 +5,8 @@ use anyhow::{Context, Ok};
 use odbc_api::IntoParameter;
 use tokio::task;
 
-#[post("/debt/insert")]
-pub async fn insert_debt(
+#[post("/post_series")]
+pub async fn post_series(
     state: web::Data<AppState>,
     payload: web::Json<DebtSeriesPostJson>,
 ) -> impl Responder {

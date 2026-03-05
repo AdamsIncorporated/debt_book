@@ -1,17 +1,5 @@
 use serde::{Deserialize, Serialize};
 
-/// Top-level PATCH payload for DebtSeries
-#[derive(Serialize, Deserialize)]
-pub struct DebtSeriesPatchJson {
-    /// Existing series to update (no inserts allowed at top level)
-    pub debt_series: Vec<DebtSeriesPatch>,
-
-    /// Child pricing operations: insert/update/delete allowed
-    pub debt_pricing: Vec<DebtPricingPatch>,
-
-    /// Child service operations: insert/update/delete allowed
-    pub debt_service: Vec<DebtServicePatch>,
-}
 
 /// PATCH version of DebtSeries (top-level)
 #[derive(Serialize, Deserialize)]

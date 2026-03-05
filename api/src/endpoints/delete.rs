@@ -5,8 +5,8 @@ use anyhow::{Context, Ok};
 use odbc_api::IntoParameter;
 use tokio::task;
 
-#[put("/debt/delete")]
-pub async fn delete(
+#[put("/delete_all_series")]
+pub async fn delete_all_series(
     state: web::Data<AppState>,
     payload: web::Json<DebtSeriesDeleteJson>,
 ) -> impl Responder {
@@ -23,9 +23,18 @@ pub async fn delete(
                 )
                 .context("ODBC connect failed")?;
 
-            let sql = "CALL USP_DEBT_DELETE_OBJECTS(parse_json(?))";
-            conn.execute(sql, &json_str.into_parameter(), None)
-                .context("Failed to call USP_DEBT_DELETE_OBJECTS")?;
+            let sql_statements = [
+                "DELETE FROM TBL_DEBT_SERIES WHERE ID = ?",
+                "DELETE FROM TBL_DEBT_PRICING WHERE SERIES_ID = ?",
+                "DELETE FROM TBL_DEBT_SERVICE WHERE SERIES_ID = ?",
+            ];
+
+            for sql in &sql_statements {
+                let cloned_json_str = json_str.clone();
+                let param = cloned_json_str.into_parameter();
+                conn.execute(sql, &param, None)
+                    .context("Failed to call USP_DEBT_DELETE_OBJECTS")?;
+            }
 
             Ok("Delete completed".to_string())
         }

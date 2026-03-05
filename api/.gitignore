@@ -1,6 +1,7 @@
 # ---- Rust / Cargo ----
 /target/
 /Cargo.lock
+/upload_data
 
 # If you are building a library, you may want to include Cargo.lock.
 # Uncomment below to track it for libraries.
