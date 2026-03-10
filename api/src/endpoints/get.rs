@@ -21,7 +21,7 @@ pub async fn get_all_debt_series(state: web::Data<AppState>) -> impl Responder {
     const SERIES_NAME_CAPACITY: usize = 100;
     const CREATED_AT_CAPACITY: usize = 50;
 
-    const SQL_GET_ALL_SERIES: &str = "CALL USP_DEBT_GET_ALL_SERIES()";
+    const SQL_GET_ALL_SERIES: &str = "SELECT * FROM TBL_DEBT_SERIES";
 
     let result: anyhow::Result<Vec<DebtSeries>> = task::spawn_blocking({
         let state = state.clone();
@@ -38,7 +38,7 @@ pub async fn get_all_debt_series(state: web::Data<AppState>) -> impl Responder {
 
             if let Some(mut cursor) = conn
                 .execute(SQL_GET_ALL_SERIES, (), None)
-                .context("Failed to call USP_DEBT_GET_ALL_SERIES")?
+                .context("Failed to get all debt series.")?
             {
                 while let Some(mut row) = cursor.next_row()? {
                     /* -------- column 1: id (Option<i64>) -------- */
