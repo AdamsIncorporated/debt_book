@@ -1,24 +1,60 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import ExcelJS from "exceljs";
 import { downloadExcelTemplate } from "../utils/func";
 
-const DebtPricingUpload = ({
-  data,
-  onChange,
-}: {
-  data?: any[];
-  onChange: (v: any[]) => void;
-}) => {
+interface DebtPricingRow {
+  maturityDate: string;
+  amount: number;
+  couponRate: number;
+  yield: number;
+  price: number;
+  premiumDiscount: number;
+}
+
+interface Props {
+  seriesId: number;
+  onChange: (v: DebtPricingRow[]) => void;
+}
+
+async function fetchDebtPricing(seriesId: number): Promise<DebtPricingRow[]> {
+  try {
+    const res = await fetch(
+      `http://localhost:5000/get/get_debt_pricing/${seriesId}`,
+    );
+    const data = await res.json();
+    return data.map((item: any) => ({
+      maturityDate: item.maturity_date,
+      amount: Number(item.amount),
+      couponRate: Number(item.coupon_rate),
+      yield: Number(item.yield_rate),
+      price: Number(item.price),
+      premiumDiscount: Number(item.premium_discount),
+    }));
+  } catch (error) {
+    console.error("Error fetching debt pricing:", error);
+    return [];
+  }
+}
+
+const DebtPricingUpload: React.FC<Props> = ({ seriesId, onChange }) => {
+  const [rows, setRows] = useState<DebtPricingRow[]>([]);
+
+  useEffect(() => {
+    fetchDebtPricing(seriesId).then((data) => {
+      if (data.length > 0) {
+        setRows(data);
+        onChange(data);
+      }
+    });
+  }, [seriesId]);
+
   const handleUpload = async (file: File) => {
     const wb = new ExcelJS.Workbook();
     await wb.xlsx.load(await file.arrayBuffer());
     const ws = wb.worksheets[0];
-
-    const rows: any[] = [];
-
+    const parsed: DebtPricingRow[] = [];
     ws.eachRow?.((row, idx) => {
       if (idx === 1) return;
-
       const [
         maturityDate,
         amount,
@@ -27,8 +63,7 @@ const DebtPricingUpload = ({
         price,
         premiumDiscount,
       ] = (row.values as any[]).slice(1);
-
-      rows.push({
+      parsed.push({
         maturityDate: maturityDate?.toString(),
         amount: Number(amount),
         couponRate: Number(couponRate),
@@ -37,10 +72,8 @@ const DebtPricingUpload = ({
         premiumDiscount: Number(premiumDiscount),
       });
     });
-
-    // Supply the data to the global state
-    data = rows;
-    onChange(rows);
+    setRows(parsed);
+    onChange(parsed);
   };
 
   return (
@@ -74,7 +107,7 @@ const DebtPricingUpload = ({
           ⬇️ Download Template
         </button>
       </label>
-      {data && data.length > 0 && (
+      {rows.length > 0 && (
         <div className="mt-6 overflow-x-auto">
           <table className="min-w-full border border-gray-200 rounded-xl shadow-sm">
             <thead className="bg-gray-100">
@@ -88,7 +121,7 @@ const DebtPricingUpload = ({
               </tr>
             </thead>
             <tbody>
-              {data.map((row, i) => (
+              {rows.map((row, i) => (
                 <tr key={i} className="border-t">
                   <td className="px-3 py-2">{row.maturityDate}</td>
                   <td className="px-3 py-2 text-right">{row.amount}</td>

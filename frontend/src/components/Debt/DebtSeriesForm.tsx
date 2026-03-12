@@ -1,20 +1,71 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { DebtSeries } from "../Constants/Get";
 
+async function fetchDebtSeriesById(seriesId: number): Promise<DebtSeries> {
+  const res = await fetch(
+    `http://localhost:5000/get/get_debt_series_by_id/${seriesId}`,
+  );
+  const data = await res.json();
+  return {
+    id: data[0].id,
+    series_name: data[0].series_name,
+    is_tax_exempt: data[0].is_tax_exempt,
+    par_amount: data[0].par_amount,
+    premium: data[0].premium,
+    cost_of_issuance: data[0].cost_of_issuance,
+    created_at: data[0].created_at,
+  };
+}
+
 function DebtSeriesForm({
-  initialData,
+  seriesId,
   onChange,
 }: {
-  initialData: DebtSeries;
+  seriesId: number;
   onChange: (v: any) => void;
-}): React.JSX.Element {
+}) {
   const [form, setForm] = useState({
-    seriesName: initialData.series_name ?? "",
-    isTaxExempt: initialData.is_tax_exempt ?? false,
-    parAmount: initialData.par_amount?.toString() ?? "",
-    premium: initialData.premium?.toString() ?? "",
-    costOfIssuance: initialData.cost_of_issuance?.toString() ?? "",
+    seriesName: "",
+    isTaxExempt: false,
+    parAmount: "",
+    premium: "",
+    costOfIssuance: "",
   });
+  const [loaded, setLoaded] = useState(false);
+
+  useEffect(() => {
+    fetchDebtSeriesById(seriesId)
+      .then((data) => {
+        setForm({
+          seriesName: data.series_name ?? "",
+          isTaxExempt: data.is_tax_exempt ?? false,
+          parAmount: data.par_amount?.toString() ?? "",
+          premium: data.premium?.toString() ?? "",
+          costOfIssuance: data.cost_of_issuance?.toString() ?? "",
+        });
+        setLoaded(true);
+      })
+      .catch(() => null); // silently fail — form won't show
+  }, [seriesId]);
+
+  if (!loaded)
+    return (
+      <div className="space-y-4 max-w-md p-6 bg-white rounded-2xl shadow-lg animate-pulse">
+        <div className="h-6 w-40 bg-gray-200 rounded-md" /> {/* title */}
+        <div className="h-10 w-full bg-gray-200 rounded-lg" />{" "}
+        {/* Series Name */}
+        <div className="h-10 w-full bg-gray-200 rounded-lg" />{" "}
+        {/* Par Amount */}
+        <div className="h-10 w-full bg-gray-200 rounded-lg" /> {/* Premium */}
+        <div className="h-10 w-full bg-gray-200 rounded-lg" />{" "}
+        {/* Cost of Issuance */}
+        <div className="flex items-center gap-2">
+          <div className="h-4 w-4 bg-gray-200 rounded" /> {/* checkbox */}
+          <div className="h-4 w-20 bg-gray-200 rounded" />{" "}
+          {/* Tax Exempt label */}
+        </div>
+      </div>
+    );
 
   const handleChange = (updated: typeof form) => {
     setForm(updated);
@@ -44,7 +95,7 @@ function DebtSeriesForm({
       <input
         type="number"
         placeholder="Par Amount"
-        disabled={true}
+        disabled
         value={form.parAmount}
         onChange={(e) => handleChange({ ...form, parAmount: e.target.value })}
         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
