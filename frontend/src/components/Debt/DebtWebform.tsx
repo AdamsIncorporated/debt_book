@@ -3,7 +3,7 @@ import DebtSeriesForm from "./DebtSeriesForm";
 import DebtPricingUpload from "./DebtPricingUpload";
 import DebtServiceUpload from "./DebtServiceUpload";
 
-const DebtWebForm = (data: FormData) => {
+const DebtWebForm = () => {
   const [series, setSeries] = useState<any>(null);
   const [pricing, setPricing] = useState<any[]>([]);
   const [service, setService] = useState<any[]>([]);
