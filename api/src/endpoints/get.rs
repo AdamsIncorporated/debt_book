@@ -471,7 +471,7 @@ pub async fn get_series_names(state: web::Data<AppState>) -> impl Responder {
                 .connect_with_connection_string(&state.conn_str, ConnectionOptions::default())
                 .context("ODBC connect failed")?;
 
-            let sql = r#"CALL USP_DEBT_GET_SERIES_NAMES()"#;
+            let sql = r#"SELECT DISTINCT SERIES_NAME FROM TBL_DEBT_SERIES"#;
 
             let mut names = Vec::new();
 

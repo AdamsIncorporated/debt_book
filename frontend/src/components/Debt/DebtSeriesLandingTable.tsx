@@ -59,7 +59,7 @@ const DebtSeriesLandingTable: React.FC = () => {
             );
 
           case showDebtForm && editingSeriesId !== null:
-            return <DebtWebForm />;
+            return <DebtWebForm seriesId={editingSeriesId} />;
 
           case !loading && !error:
             return (

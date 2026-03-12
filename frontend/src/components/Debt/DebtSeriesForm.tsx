@@ -6,7 +6,7 @@ interface SeriesName {
 
 async function fetchSeriesNames(): Promise<string[]> {
   try {
-    const response = await fetch("http://127.0.0.1:5000/debt/series_names");
+    const response = await fetch("http://127.0.0.1:5000/get/get_series_names");
 
     if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
 
