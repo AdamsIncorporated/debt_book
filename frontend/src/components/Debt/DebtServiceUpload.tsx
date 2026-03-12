@@ -16,9 +16,10 @@ interface Props {
 async function fetchDebtService(seriesId: number): Promise<DebtServiceRow[]> {
   try {
     const res = await fetch(
-      `http://localhost:5000/get/get_debt_service/${seriesId}`,
+      `http://localhost:5000/get/get_debt_series_service_by_id/${seriesId}`,
     );
     const data = await res.json();
+    console.log("Fetched debt service data:", data);
     return data.map((item: any) => ({
       paymentDate: item.payment_date,
       principal: Number(item.principal),

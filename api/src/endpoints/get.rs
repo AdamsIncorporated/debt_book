@@ -237,7 +237,7 @@ pub async fn get_debt_series_service_by_id(
 
     const PAYMENT_DATE_CAPACITY: usize = 50;
     const CREATED_AT_CAPACITY: usize = 50;
-    const SQL_COMMAND: &str = "CALL USP_DEBT_GET_DEBT_SERIES_SERVICE_BY_ID(?)";
+    const SQL_COMMAND: &str = "SELECT * FROM TBL_DEBT_SERVICE WHERE SERIES_ID = ?";
 
     let result: anyhow::Result<Vec<DebtService>> = task::spawn_blocking({
         let state = state.clone();
@@ -347,7 +347,7 @@ pub async fn get_debt_series_pricing_by_id(
 
     const MATURITY_DATE_DATE_CAPACITY: usize = 50;
     const CREATED_AT_CAPACITY: usize = 50;
-    const SQL_COMMAND: &str = "CALL USP_DEBT_GET_DEBT_SERIES_PRICING_BY_ID(?)";
+    const SQL_COMMAND: &str = "SELECT * FROM TBL_DEBT_PRICING WHERE SERIES_ID = ?";
 
     let result: anyhow::Result<Vec<DebtPricing>> = task::spawn_blocking({
         let state = state.clone();

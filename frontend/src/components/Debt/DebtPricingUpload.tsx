@@ -19,9 +19,10 @@ interface Props {
 async function fetchDebtPricing(seriesId: number): Promise<DebtPricingRow[]> {
   try {
     const res = await fetch(
-      `http://localhost:5000/get/get_debt_pricing/${seriesId}`,
+      `http://localhost:5000/get/get_debt_series_pricing_by_id/${seriesId}`,
     );
     const data = await res.json();
+    console.log("Fetched debt pricing data:", data);
     return data.map((item: any) => ({
       maturityDate: item.maturity_date,
       amount: Number(item.amount),
