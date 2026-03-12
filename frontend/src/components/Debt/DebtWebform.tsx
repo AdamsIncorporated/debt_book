@@ -1,44 +1,68 @@
-import React, { useState } from "react";
+import React, { useEffect, useLayoutEffect, useState } from "react";
 import DebtSeriesForm from "./DebtSeriesForm";
 import DebtPricingUpload from "./DebtPricingUpload";
 import DebtServiceUpload from "./DebtServiceUpload";
-// import DebtSeries from "../Constants/Get";
+import { DebtSeries } from "../Constants/Get";
 
 type DebtWebFormProps = {
   seriesId: number;
 };
 
-const debtSeriesData = async (id: number) => {
+async function fetchDebtSeriesById(seriesId: number): Promise<DebtSeries> {
   try {
     const res = await fetch(
-      `http://localhost:5000/get/get_debt_series_by_id/${id}`,
+      `http://localhost:5000/get/get_debt_series_by_id/${seriesId}`,
     );
     const data = await res.json();
-    return data;
+    console.log("Fetched debt series data:", data);
+    return {
+      id: data[0].id,
+      series_name: data[0].series_name,
+      is_tax_exempt: data[0].is_tax_exempt,
+      par_amount: data[0].par_amount,
+      premium: data[0].premium,
+      cost_of_issuance: data[0].cost_of_issuance,
+      created_at: data[0].created_at,
+    } as DebtSeries;
   } catch (error) {
     console.error("Error fetching debt series data:", error);
     throw error;
   }
-};
+}
 
 const DebtWebForm = ({ seriesId }: DebtWebFormProps) => {
-  const [series, setSeries] = useState<any>(null);
-  const [pricing, setPricing] = useState<any[]>([]);
-  const [service, setService] = useState<any[]>([]);
+  const [seriesFormData, setSeriesDataFormData] = useState<any>(null);
+  const [pricingFormData, setPricingFormData] = useState<any[]>([]);
+  const [serviceFormData, setServiceFormData] = useState<any[]>([]);
+  const [initialSeriesData, setInitialSeriesData] = useState<DebtSeries | null>(
+    null,
+  );
 
-  const isValid = series && pricing.length > 0 && service.length > 0;
-  const debtseriesData = debtSeriesData(seriesId);
+  useEffect(() => {
+    fetchDebtSeriesById(seriesId).then((data) => {
+      if (data != null) setInitialSeriesData(data);
+    });
+  }, [seriesId]);
+
+  const isValid =
+    initialSeriesData &&
+    pricingFormData.length > 0 &&
+    serviceFormData.length > 0;
 
   const handleSubmit = () => {
     if (!isValid) return alert("Missing required data");
   };
 
+  if (!initialSeriesData) return <div>Loading...</div>;
+
   return (
     <div className="space-y-8 mx-auto w-1/2 py-10">
-      debtseriesData: {JSON.stringify(debtseriesData)}
-      <DebtSeriesForm onChange={setSeries} />
-      <DebtPricingUpload onChange={setPricing} />
-      <DebtServiceUpload onChange={setService} />
+      <DebtSeriesForm
+        initialData={initialSeriesData}
+        onChange={setSeriesDataFormData}
+      />
+      <DebtPricingUpload onChange={setPricingFormData} />
+      <DebtServiceUpload onChange={setServiceFormData} />
       <button
         disabled={!isValid}
         onClick={handleSubmit}

@@ -14,7 +14,7 @@ export interface DebtSeriesPatchJson {
 export interface DebtSeries {
   id: number; // i64 → number
   series_name: string;
-  is_tax_exempt?: boolean | null;
+  is_tax_exempt?: boolean;
   par_amount: number;
   premium?: number | null;
   cost_of_issuance?: number | null;
