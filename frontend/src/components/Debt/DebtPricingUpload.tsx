@@ -8,14 +8,24 @@ interface Props {
   onChange: (v: DebtPricing[]) => void;
 }
 
+// ✅ Single source of truth — drives headers, table, and Excel export
+const COLUMNS: { label: string; key: keyof DebtPricing; align?: "right" }[] = [
+  { label: "Id", key: "id" },
+  { label: "Series Id", key: "series_id" },
+  { label: "Maturity Date", key: "maturity_date" },
+  { label: "Amount", key: "amount", align: "right" },
+  { label: "Coupon Rate", key: "coupon_rate", align: "right" },
+  { label: "Yield Rate", key: "yield_rate", align: "right" },
+  { label: "Price", key: "price", align: "right" },
+  { label: "Premium/Discount", key: "premium_discount", align: "right" },
+];
+
 async function fetchDebtPricing(seriesId: number): Promise<DebtPricing[]> {
   try {
-    console.log("Fetching debt pricing for series ID:", seriesId);
     const res = await fetch(
       `http://localhost:5000/get/get_debt_series_pricing_by_id/${seriesId}`,
     );
     const data = await res.json();
-    console.log("Fetched debt pricing data:", data);
     return data.map((item: any) => ({
       id: item.id,
       series_id: item.series_id,
@@ -26,8 +36,7 @@ async function fetchDebtPricing(seriesId: number): Promise<DebtPricing[]> {
       price: Number(item.price),
       premium_discount: Number(item.premium_discount),
     }));
-  } catch (error) {
-    console.error("Error fetching debt pricing:", error);
+  } catch {
     return [];
   }
 }
@@ -51,30 +60,30 @@ const DebtPricingUpload: React.FC<Props> = ({ seriesId, onChange }) => {
     const parsed: DebtPricing[] = [];
     ws.eachRow?.((row, idx) => {
       if (idx === 1) return;
-      const [
-        id,
-        seriesId,
-        maturity_date,
-        amount,
-        coupon_rate,
-        yield_rate,
-        price,
-        premium_discount,
-      ] = (row.values as any[]).slice(1);
+      const vals = (row.values as any[]).slice(1);
+      const entry = Object.fromEntries(
+        COLUMNS.map(({ key }, i) => [key, vals[i]]),
+      );
       parsed.push({
-        id: id,
-        series_id: seriesId,
-        maturity_date: maturity_date?.toString(),
-        amount: Number(amount),
-        coupon_rate: Number(coupon_rate),
-        yield_rate: Number(yield_rate),
-        price: Number(price),
-        premium_discount: Number(premium_discount),
-      });
+        ...entry,
+        amount: Number(entry.amount),
+        coupon_rate: Number(entry.coupon_rate),
+        yield_rate: Number(entry.yield_rate),
+        price: Number(entry.price),
+        premium_discount: Number(entry.premium_discount),
+      } as DebtPricing);
     });
     setRows(parsed);
     onChange(parsed);
   };
+
+  const handleDownload = () =>
+    downloadExcelTemplate(
+      "DebtPricingTemplate.xlsx",
+      "Debt Pricing",
+      COLUMNS.map((c) => c.label),
+      rows.map((r) => COLUMNS.map((c) => r[c.key])),
+    );
 
   return (
     <div>
@@ -86,71 +95,44 @@ const DebtPricingUpload: React.FC<Props> = ({ seriesId, onChange }) => {
           accept=".xlsx"
           className="hidden"
           onChange={(e) => {
-            const file = e.target.files?.[0];
-            if (!file) return;
-            handleUpload(file);
+            const f = e.target.files?.[0];
+            if (f) handleUpload(f);
           }}
         />
         <button
-          onClick={() =>
-            downloadExcelTemplate(
-              "DebtPricingTemplate.xlsx",
-              "Debt Pricing",
-              [
-                "Id",
-                "Series Id",
-                "Maturity Date",
-                "Amount",
-                "Coupon Rate",
-                "Yield Rate",
-                "Price",
-                "Premium/Discount",
-              ],
-              rows.map((r) => [
-                r.id,
-                r.series_id,
-                r.maturity_date,
-                r.amount,
-                r.coupon_rate,
-                r.yield_rate,
-                r.price,
-                r.premium_discount,
-              ]),
-            )
-          }
+          onClick={handleDownload}
           className="px-4 py-2 rounded-xl bg-white text-gray font-medium shadow-md hover:bg-gray-100 active:scale-95 transition cursor-pointer"
         >
           ⬇️ Download Template
         </button>
       </label>
+
       {rows.length > 0 && (
         <div className="mt-6 overflow-x-auto">
           <table className="min-w-full border border-gray-200 rounded-xl shadow-sm">
             <thead className="bg-gray-100">
               <tr>
-                <th className="px-3 py-2 text-left">Id</th>
-                <th className="px-3 py-2 text-left">Series Id</th>
-                <th className="px-3 py-2 text-left">Maturity Date</th>
-                <th className="px-3 py-2 text-right">Amount</th>
-                <th className="px-3 py-2 text-right">Coupon Rate</th>
-                <th className="px-3 py-2 text-right">Yield</th>
-                <th className="px-3 py-2 text-right">Price</th>
-                <th className="px-3 py-2 text-right">Premium / Discount</th>
+                {COLUMNS.map((c) => (
+                  <th
+                    key={c.key}
+                    className={`px-3 py-2 ${c.align === "right" ? "text-right" : "text-left"}`}
+                  >
+                    {c.label}
+                  </th>
+                ))}
               </tr>
             </thead>
             <tbody>
               {rows.map((row, i) => (
                 <tr key={i} className="border-t">
-                  <td className="px-3 py-2">{row.id}</td>
-                  <td className="px-3 py-2">{row.series_id}</td>
-                  <td className="px-3 py-2">{row.maturity_date}</td>
-                  <td className="px-3 py-2 text-right">{row.amount}</td>
-                  <td className="px-3 py-2 text-right">{row.coupon_rate}</td>
-                  <td className="px-3 py-2 text-right">{row.yield_rate}</td>
-                  <td className="px-3 py-2 text-right">{row.price}</td>
-                  <td className="px-3 py-2 text-right">
-                    {row.premium_discount}
-                  </td>
+                  {COLUMNS.map((c) => (
+                    <td
+                      key={c.key}
+                      className={`px-3 py-2 ${c.align === "right" ? "text-right" : ""}`}
+                    >
+                      {row[c.key]}
+                    </td>
+                  ))}
                 </tr>
               ))}
             </tbody>

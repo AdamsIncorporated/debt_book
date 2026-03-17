@@ -36,3 +36,15 @@ export async function downloadExcelTemplate(
   a.click();
   URL.revokeObjectURL(url);
 }
+
+export function validateDebtSeriesData(data: any): boolean {
+  return Array.isArray(data) && data.every((item) => typeof item === "object");
+}
+
+export function validateDebtServiceData(data: any): boolean {
+  return Array.isArray(data) && data.every((item) => typeof item === "object");
+}
+
+export function validateDebtPricingData(data: any): boolean {
+  return Array.isArray(data) && data.every((item) => typeof item === "object");
+}
