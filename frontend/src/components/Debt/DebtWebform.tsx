@@ -2,7 +2,7 @@ import React, { useEffect, useLayoutEffect, useState } from "react";
 import DebtSeriesForm from "./DebtSeriesForm";
 import DebtPricingUpload from "./DebtPricingUpload";
 import DebtServiceUpload from "./DebtServiceUpload";
-import { DebtSeries } from "../Constants/Get";
+import { DebtSeries } from "../Constants/Constants";
 
 type DebtWebFormProps = {
   seriesId: number;
@@ -12,8 +12,6 @@ const DebtWebForm = ({ seriesId }: DebtWebFormProps) => {
   const [seriesFormData, setSeriesDataFormData] = useState<any>(null);
   const [pricingFormData, setPricingFormData] = useState<any[]>([]);
   const [serviceFormData, setServiceFormData] = useState<any[]>([]);
-
-  
 
   const isValid =
     seriesFormData && pricingFormData.length > 0 && serviceFormData.length > 0;

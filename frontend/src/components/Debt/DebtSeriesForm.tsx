@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { DebtSeries } from "../Constants/Get";
+import { DebtSeries } from "../Constants/Constants";
 
 async function fetchDebtSeriesById(seriesId: number): Promise<DebtSeries> {
   const res = await fetch(
@@ -85,14 +85,18 @@ function DebtSeriesForm({
       <h2 className="text-xl font-semibold text-gray-800 mb-2">
         Debt Series Form
       </h2>
+      <label htmlFor="seriesName">Series Name</label>
       <input
+        name="seriesName"
         type="text"
         placeholder="Series Name"
         value={form.seriesName}
         onChange={(e) => handleChange({ ...form, seriesName: e.target.value })}
         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
       />
+      <label htmlFor="parAmount">Par Amount</label>
       <input
+        name="parAmount"
         type="number"
         placeholder="Par Amount"
         disabled
@@ -100,14 +104,18 @@ function DebtSeriesForm({
         onChange={(e) => handleChange({ ...form, parAmount: e.target.value })}
         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
       />
+      <label htmlFor="premium">Premium</label>
       <input
+        name="premium"
         type="number"
         placeholder="Premium"
         value={form.premium}
         onChange={(e) => handleChange({ ...form, premium: e.target.value })}
         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
       />
+      <label htmlFor="costOfIssuance">Cost of Issuance</label>
       <input
+        name="costOfIssuance"
         type="number"
         placeholder="Cost of Issuance"
         value={form.costOfIssuance}
