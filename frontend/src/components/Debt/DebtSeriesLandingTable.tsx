@@ -45,7 +45,7 @@ const DebtSeriesLandingTable: React.FC = () => {
   }, []);
 
   return (
-    <div className="h-lvh space-y-8 mx-auto w-1/2 py-10">
+    <div className="h-lvh space-y-8 mx-auto w-3/4 py-10">
       {(() => {
         switch (true) {
           case loading:
@@ -78,7 +78,7 @@ const DebtSeriesLandingTable: React.FC = () => {
                 </thead>
                 <tbody>
                   {series.map((s) => (
-                    <tr key={s.id ?? Math.random()}>
+                    <tr key={s.id ?? -1}>
                       <td className="border-2 border-gray-500 px-4 py-2">
                         {s.id ?? "-"}
                       </td>

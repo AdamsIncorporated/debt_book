@@ -81,7 +81,7 @@ function DebtSeriesForm({
   };
 
   return (
-    <div className="space-y-4 max-w-md p-6 bg-white rounded-2xl shadow-lg">
+    <div className="space-y-4 p-6 bg-white rounded-2xl shadow-lg">
       <h2 className="text-xl font-semibold text-gray-800 mb-2">
         Debt Series Form
       </h2>

@@ -1,35 +1,30 @@
 import React, { useState, useEffect } from "react";
 import ExcelJS from "exceljs";
 import { downloadExcelTemplate } from "../utils/func";
-
-interface DebtPricingRow {
-  maturityDate: string;
-  amount: number;
-  couponRate: number;
-  yield: number;
-  price: number;
-  premiumDiscount: number;
-}
+import { DebtPricing } from "../Constants/Constants";
 
 interface Props {
   seriesId: number;
-  onChange: (v: DebtPricingRow[]) => void;
+  onChange: (v: DebtPricing[]) => void;
 }
 
-async function fetchDebtPricing(seriesId: number): Promise<DebtPricingRow[]> {
+async function fetchDebtPricing(seriesId: number): Promise<DebtPricing[]> {
   try {
+    console.log("Fetching debt pricing for series ID:", seriesId);
     const res = await fetch(
       `http://localhost:5000/get/get_debt_series_pricing_by_id/${seriesId}`,
     );
     const data = await res.json();
     console.log("Fetched debt pricing data:", data);
     return data.map((item: any) => ({
-      maturityDate: item.maturity_date,
+      id: item.id,
+      series_id: item.series_id,
+      maturity_date: item.maturity_date,
       amount: Number(item.amount),
-      couponRate: Number(item.coupon_rate),
-      yield: Number(item.yield_rate),
+      coupon_rate: Number(item.coupon_rate),
+      yield_rate: Number(item.yield_rate),
       price: Number(item.price),
-      premiumDiscount: Number(item.premium_discount),
+      premium_discount: Number(item.premium_discount),
     }));
   } catch (error) {
     console.error("Error fetching debt pricing:", error);
@@ -38,7 +33,7 @@ async function fetchDebtPricing(seriesId: number): Promise<DebtPricingRow[]> {
 }
 
 const DebtPricingUpload: React.FC<Props> = ({ seriesId, onChange }) => {
-  const [rows, setRows] = useState<DebtPricingRow[]>([]);
+  const [rows, setRows] = useState<DebtPricing[]>([]);
 
   useEffect(() => {
     fetchDebtPricing(seriesId).then((data) => {
@@ -53,24 +48,28 @@ const DebtPricingUpload: React.FC<Props> = ({ seriesId, onChange }) => {
     const wb = new ExcelJS.Workbook();
     await wb.xlsx.load(await file.arrayBuffer());
     const ws = wb.worksheets[0];
-    const parsed: DebtPricingRow[] = [];
+    const parsed: DebtPricing[] = [];
     ws.eachRow?.((row, idx) => {
       if (idx === 1) return;
       const [
-        maturityDate,
+        id,
+        seriesId,
+        maturity_date,
         amount,
-        couponRate,
-        yieldRate,
+        coupon_rate,
+        yield_rate,
         price,
-        premiumDiscount,
+        premium_discount,
       ] = (row.values as any[]).slice(1);
       parsed.push({
-        maturityDate: maturityDate?.toString(),
+        id: id,
+        series_id: seriesId,
+        maturity_date: maturity_date?.toString(),
         amount: Number(amount),
-        couponRate: Number(couponRate),
-        yield: Number(yieldRate),
+        coupon_rate: Number(coupon_rate),
+        yield_rate: Number(yield_rate),
         price: Number(price),
-        premiumDiscount: Number(premiumDiscount),
+        premium_discount: Number(premium_discount),
       });
     });
     setRows(parsed);
@@ -94,14 +93,30 @@ const DebtPricingUpload: React.FC<Props> = ({ seriesId, onChange }) => {
         />
         <button
           onClick={() =>
-            downloadExcelTemplate("DebtPricingTemplate.xlsx", "Debt Pricing", [
-              "Maturity Date",
-              "Amount",
-              "Coupon Rate",
-              "Yield Rate",
-              "Price",
-              "Premium/Discount",
-            ])
+            downloadExcelTemplate(
+              "DebtPricingTemplate.xlsx",
+              "Debt Pricing",
+              [
+                "Id",
+                "Series Id",
+                "Maturity Date",
+                "Amount",
+                "Coupon Rate",
+                "Yield Rate",
+                "Price",
+                "Premium/Discount",
+              ],
+              rows.map((r) => [
+                r.id,
+                r.series_id,
+                r.maturity_date,
+                r.amount,
+                r.coupon_rate,
+                r.yield_rate,
+                r.price,
+                r.premium_discount,
+              ]),
+            )
           }
           className="px-4 py-2 rounded-xl bg-white text-gray font-medium shadow-md hover:bg-gray-100 active:scale-95 transition cursor-pointer"
         >
@@ -113,6 +128,8 @@ const DebtPricingUpload: React.FC<Props> = ({ seriesId, onChange }) => {
           <table className="min-w-full border border-gray-200 rounded-xl shadow-sm">
             <thead className="bg-gray-100">
               <tr>
+                <th className="px-3 py-2 text-left">Id</th>
+                <th className="px-3 py-2 text-left">Series Id</th>
                 <th className="px-3 py-2 text-left">Maturity Date</th>
                 <th className="px-3 py-2 text-right">Amount</th>
                 <th className="px-3 py-2 text-right">Coupon Rate</th>
@@ -124,13 +141,15 @@ const DebtPricingUpload: React.FC<Props> = ({ seriesId, onChange }) => {
             <tbody>
               {rows.map((row, i) => (
                 <tr key={i} className="border-t">
-                  <td className="px-3 py-2">{row.maturityDate}</td>
+                  <td className="px-3 py-2">{row.id}</td>
+                  <td className="px-3 py-2">{row.series_id}</td>
+                  <td className="px-3 py-2">{row.maturity_date}</td>
                   <td className="px-3 py-2 text-right">{row.amount}</td>
-                  <td className="px-3 py-2 text-right">{row.couponRate}</td>
-                  <td className="px-3 py-2 text-right">{row.yield}</td>
+                  <td className="px-3 py-2 text-right">{row.coupon_rate}</td>
+                  <td className="px-3 py-2 text-right">{row.yield_rate}</td>
                   <td className="px-3 py-2 text-right">{row.price}</td>
                   <td className="px-3 py-2 text-right">
-                    {row.premiumDiscount}
+                    {row.premium_discount}
                   </td>
                 </tr>
               ))}

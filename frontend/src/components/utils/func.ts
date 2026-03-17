@@ -1,26 +1,26 @@
 // utils/downloadExcelTemplate.ts
 import ExcelJS from "exceljs";
 
-/**
- * Download an Excel template with custom headers.
- *
- * @param fileName - The name of the file to download (e.g., "DebtService.xlsx")
- * @param sheetName - The name of the worksheet (e.g., "Debt Service")
- * @param headers - An array of column headers (e.g., ["Payment Date", "Principal", "Interest"])
- */
 export async function downloadExcelTemplate(
   fileName: string,
   sheetName: string,
   headers: string[],
+  data: any[] = [],
 ) {
   const workbook = new ExcelJS.Workbook();
   const ws = workbook.addWorksheet(sheetName);
 
-  // Add header row
-  ws.addRow(headers);
-
-  // Optional: auto-width for columns
+  // ✅ Set columns FIRST — this also writes the header row
   ws.columns = headers.map((h) => ({ header: h, width: h.length + 5 }));
+
+  // ✅ Now add data rows after
+  data.forEach((row) => {
+    if (Array.isArray(row)) {
+      ws.addRow(row);
+    } else if (typeof row === "object") {
+      ws.addRow(headers.map((h) => row[h] ?? ""));
+    }
+  });
 
   // Generate buffer and create blob
   const buffer = await workbook.xlsx.writeBuffer();
