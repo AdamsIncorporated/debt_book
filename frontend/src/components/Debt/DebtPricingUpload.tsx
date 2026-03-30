@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import ExcelJS from "exceljs";
-import { downloadExcelTemplate } from "../utils/func";
+import { downloadExcelTemplate, validateDebtPricingBatch } from "../utils/func";
 import { DebtPricing } from "../Constants/Constants";
 
 interface Props {
@@ -43,6 +43,7 @@ async function fetchDebtPricing(seriesId: number): Promise<DebtPricing[]> {
 
 const DebtPricingUpload: React.FC<Props> = ({ seriesId, onChange }) => {
   const [rows, setRows] = useState<DebtPricing[]>([]);
+  const [error, setError] = useState<string[] | null>(null);
 
   useEffect(() => {
     fetchDebtPricing(seriesId).then((data) => {
@@ -53,17 +54,21 @@ const DebtPricingUpload: React.FC<Props> = ({ seriesId, onChange }) => {
     });
   }, [seriesId]);
 
-  const handleUpload = async (file: File) => {
+  const handleUpload = async (file: File, store: DebtPricing[]) => {
     const wb = new ExcelJS.Workbook();
     await wb.xlsx.load(await file.arrayBuffer());
     const ws = wb.worksheets[0];
+
     const parsed: DebtPricing[] = [];
+
     ws.eachRow?.((row, idx) => {
-      if (idx === 1) return;
+      if (idx === 1) return; // skip header
+
       const vals = (row.values as any[]).slice(1);
       const entry = Object.fromEntries(
         COLUMNS.map(({ key }, i) => [key, vals[i]]),
       );
+
       parsed.push({
         ...entry,
         amount: Number(entry.amount),
@@ -73,6 +78,16 @@ const DebtPricingUpload: React.FC<Props> = ({ seriesId, onChange }) => {
         premium_discount: Number(entry.premium_discount),
       } as DebtPricing);
     });
+
+    // Validate against existing rows (server-loaded store)
+    const validation = validateDebtPricingBatch(parsed, store);
+
+    if (!validation.valid) {
+      setError(validation.errors); // ❌ show validation errors
+      return;
+    }
+
+    setError(null); // ✅ clear previous errors
     setRows(parsed);
     onChange(parsed);
   };
@@ -88,6 +103,8 @@ const DebtPricingUpload: React.FC<Props> = ({ seriesId, onChange }) => {
   return (
     <div>
       <h3 className="text-lg font-semibold">Debt Pricing Upload</h3>
+
+      {/* Upload Button Row */}
       <label className="inline-flex w-full items-center gap-3 px-4 py-2 rounded-xl bg-white text-gray font-medium shadow-md cursor-pointer hover:bg-gray-100 active:scale-95 transition">
         📄 Upload Excel Pricing Schedule
         <input
@@ -96,7 +113,7 @@ const DebtPricingUpload: React.FC<Props> = ({ seriesId, onChange }) => {
           className="hidden"
           onChange={(e) => {
             const f = e.target.files?.[0];
-            if (f) handleUpload(f);
+            if (f) handleUpload(f, rows);
           }}
         />
         <button
@@ -107,6 +124,19 @@ const DebtPricingUpload: React.FC<Props> = ({ seriesId, onChange }) => {
         </button>
       </label>
 
+      {/* Error Box (clean, separate, seamless) */}
+      {error && (
+        <div className="mt-4 p-4 rounded-xl bg-red-100 border border-red-300 text-red-700 shadow-sm">
+          <strong className="block mb-1">Upload Errors:</strong>
+          <ul className="list-disc ml-6 space-y-1">
+            {error.map((e, i) => (
+              <li key={i}>{e}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {/* Table */}
       {rows.length > 0 && (
         <div className="mt-6 overflow-x-auto">
           <table className="min-w-full border border-gray-200 rounded-xl shadow-sm">
@@ -115,7 +145,9 @@ const DebtPricingUpload: React.FC<Props> = ({ seriesId, onChange }) => {
                 {COLUMNS.map((c) => (
                   <th
                     key={c.key}
-                    className={`px-3 py-2 ${c.align === "right" ? "text-right" : "text-left"}`}
+                    className={`px-3 py-2 ${
+                      c.align === "right" ? "text-right" : "text-left"
+                    }`}
                   >
                     {c.label}
                   </th>
@@ -128,7 +160,9 @@ const DebtPricingUpload: React.FC<Props> = ({ seriesId, onChange }) => {
                   {COLUMNS.map((c) => (
                     <td
                       key={c.key}
-                      className={`px-3 py-2 ${c.align === "right" ? "text-right" : ""}`}
+                      className={`px-3 py-2 ${
+                        c.align === "right" ? "text-right" : ""
+                      }`}
                     >
                       {row[c.key]}
                     </td>
