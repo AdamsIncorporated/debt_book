@@ -1,5 +1,14 @@
-// utils/downloadExcelTemplate.ts
-import { DebtPricing, DebtService } from "components/Constants/Constants";
+import {
+  DebtPricing,
+  DebtService,
+  PATCH_DEBT_SERIES,
+  PATCH_DEBT_PRICING,
+  PATCH_DEBT_SERVICE,
+  POST_DEBT_SERIES,
+  POST_DEBT_PRICING,
+  POST_DEBT_SERVICE,
+  DELETE_ALL_SERIES,
+} from "components/Constants/Constants";
 import ExcelJS from "exceljs";
 
 export async function downloadExcelTemplate(
@@ -214,8 +223,10 @@ export function diffArray<T extends { id?: number }>(
   return { inserts, updates, deletes };
 }
 
-export function performCrudOperations(payload: SubmitPayload) {
-  // SERIES (single object, not array)
+export async function performCrudOperations(payload: SubmitPayload) {
+  // -----------------------------
+  // SERIES (single non-array object)
+  // -----------------------------
   const seriesChanged =
     JSON.stringify(payload.series.original) !==
     JSON.stringify(payload.series.current);
@@ -224,15 +235,129 @@ export function performCrudOperations(payload: SubmitPayload) {
     update: seriesChanged ? payload.series.current : null,
   };
 
+  // -----------------------------
   // PRICING ARRAY DIFF
+  // -----------------------------
   const pricing = diffArray(payload.pricing.original, payload.pricing.current);
 
+  // -----------------------------
   // SERVICE ARRAY DIFF
+  // ------------------------------
   const service = diffArray(payload.service.original, payload.service.current);
 
-  console.log("CRUD PACKAGE:", {
-    series,
-    pricing,
-    service,
-  });
+  // -----------------------------
+  // CRUD ORCHESTRATION
+  // -----------------------------
+  const ops: Promise<any>[] = [];
+
+  // SERIES UPDATE
+  if (series.update) {
+    ops.push(patch(PATCH_DEBT_SERIES, series.update));
+  }
+
+  // PRICING INSERTS
+  if (pricing.inserts.length > 0) {
+    ops.push(post(POST_DEBT_PRICING, pricing.inserts));
+  }
+
+  // PRICING UPDATES
+  if (pricing.updates.length > 0) {
+    ops.push(patch(PATCH_DEBT_PRICING, pricing.updates));
+  }
+
+  // PRICING DELETES
+  if (pricing.deletes.length > 0) {
+    ops.push(del(PATCH_DEBT_PRICING, pricing.deletes));
+  }
+
+  // SERVICE INSERTS
+  if (service.inserts.length > 0) {
+    ops.push(post(POST_DEBT_SERVICE, service.inserts));
+  }
+
+  // SERVICE UPDATES
+  if (service.updates.length > 0) {
+    ops.push(patch(PATCH_DEBT_SERVICE, service.updates));
+  }
+
+  // SERVICE DELETES
+  if (service.deletes.length > 0) {
+    ops.push(del(PATCH_DEBT_SERVICE, service.deletes));
+  }
+
+  // ⚠ OPTIONAL: if full "delete all series" endpoint is required
+  // ops.push(del(DELETE_ALL_SERIES));
+
+  // -----------------------------
+  // EXECUTE ALL REQUESTS
+  // -----------------------------
+  const results = await Promise.all(ops);
+
+  return results;
+}
+
+async function post(url: string, body: any) {
+  console.log("POST →", url, "BODY →", body);
+
+  try {
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+
+    console.log("POST STATUS →", res.status);
+
+    const data = await res.json().catch(() => null);
+    console.log("POST RESPONSE →", data);
+
+    return { status: res.status, data };
+  } catch (err) {
+    console.error("POST ERROR →", err);
+    throw err;
+  }
+}
+
+async function patch(url: string, body: any) {
+  console.log("PATCH →", url, "BODY →", body);
+
+  try {
+    const res = await fetch(url, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+
+    console.log("PATCH STATUS →", res.status);
+
+    const data = await res.json().catch(() => null);
+    console.log("PATCH RESPONSE →", data);
+
+    return { status: res.status, data };
+  } catch (err) {
+    console.error("PATCH ERROR →", err);
+    throw err;
+  }
+}
+
+async function del(url: string, body?: any) {
+  console.log("DELETE →", url, "BODY →", body);
+
+  try {
+    const res = await fetch(url, {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: body ? JSON.stringify(body) : undefined,
+    });
+
+    console.log("DELETE STATUS →", res.status);
+
+    const data = await res.json().catch(() => null);
+    console.log("DELETE RESPONSE →", data);
+
+    return { status: res.status, data };
+  } catch (err) {
+    console.error("DELETE ERROR →", err);
+    throw err;
+  }
 }
