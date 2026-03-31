@@ -2,10 +2,12 @@ import React, { useState, useEffect } from "react";
 import ExcelJS from "exceljs";
 import { downloadExcelTemplate, validateDebtPricingBatch } from "../utils/func";
 import { DebtPricing } from "../Constants/Constants";
+import { on } from "events";
 
 interface Props {
   seriesId: number;
   onChange: (v: DebtPricing[]) => void;
+  onInitialLoad: (v: DebtPricing[]) => void;
 }
 
 // ✅ Single source of truth — drives headers, table, and Excel export
@@ -41,7 +43,11 @@ async function fetchDebtPricing(seriesId: number): Promise<DebtPricing[]> {
   }
 }
 
-const DebtPricingUpload: React.FC<Props> = ({ seriesId, onChange }) => {
+const DebtPricingUpload: React.FC<Props> = ({
+  seriesId,
+  onChange,
+  onInitialLoad,
+}) => {
   const [rows, setRows] = useState<DebtPricing[]>([]);
   const [error, setError] = useState<string[] | null>(null);
 
@@ -49,6 +55,7 @@ const DebtPricingUpload: React.FC<Props> = ({ seriesId, onChange }) => {
     fetchDebtPricing(seriesId).then((data) => {
       if (data.length > 0) {
         setRows(data);
+        onInitialLoad(data);
         onChange(data);
       }
     });

@@ -20,9 +20,11 @@ async function fetchDebtSeriesById(seriesId: number): Promise<DebtSeries> {
 function DebtSeriesForm({
   seriesId,
   onChange,
+  onInitialLoad,
 }: {
   seriesId: number;
   onChange: (v: any) => void;
+  onInitialLoad: (v: any) => void;
 }) {
   const [form, setForm] = useState({
     seriesName: "",
@@ -44,6 +46,7 @@ function DebtSeriesForm({
           costOfIssuance: data.cost_of_issuance?.toString() ?? "",
         });
         setLoaded(true);
+        onInitialLoad(data);
       })
       .catch(() => null); // silently fail — form won't show
   }, [seriesId]);

@@ -6,6 +6,7 @@ import { DebtService } from "components/Constants/Constants";
 interface Props {
   seriesId: number;
   onChange: (rows: DebtService[]) => void;
+  onInitialLoad: (rows: DebtService[]) => void;
 }
 
 // ✅ Single source of truth — drives headers, table, and Excel export
@@ -36,7 +37,11 @@ async function fetchDebtService(seriesId: number): Promise<DebtService[]> {
   }
 }
 
-const DebtServiceUpload: React.FC<Props> = ({ seriesId, onChange }) => {
+const DebtServiceUpload: React.FC<Props> = ({
+  seriesId,
+  onChange,
+  onInitialLoad,
+}) => {
   const [rows, setRows] = useState<DebtService[]>([]);
   const [error, setError] = useState<string[] | null>(null);
 
@@ -45,6 +50,7 @@ const DebtServiceUpload: React.FC<Props> = ({ seriesId, onChange }) => {
     fetchDebtService(seriesId).then((data) => {
       if (data.length > 0) {
         setRows(data);
+        onInitialLoad(data);
         onChange(data);
       }
     });
