@@ -224,76 +224,76 @@ export function diffArray<T extends { id?: number }>(
 }
 
 export async function performCrudOperations(payload: SubmitPayload) {
-  // -----------------------------
-  // SERIES (single non-array object)
-  // -----------------------------
+  //
+  // SERIES (single object)
+  //
   const seriesChanged =
     JSON.stringify(payload.series.original) !==
     JSON.stringify(payload.series.current);
 
-  const series = {
-    update: seriesChanged ? payload.series.current : null,
-  };
+  const seriesUpdate = seriesChanged ? payload.series.current : null;
 
-  // -----------------------------
-  // PRICING ARRAY DIFF
-  // -----------------------------
+  //
+  // ARRAYS
+  //
   const pricing = diffArray(payload.pricing.original, payload.pricing.current);
-
-  // -----------------------------
-  // SERVICE ARRAY DIFF
-  // ------------------------------
   const service = diffArray(payload.service.original, payload.service.current);
 
-  // -----------------------------
-  // CRUD ORCHESTRATION
-  // -----------------------------
+  //
+  // SEND TO SERVER (using backend struct format)
+  //
   const ops: Promise<any>[] = [];
 
-  // SERIES UPDATE
-  if (series.update) {
-    ops.push(patch(PATCH_DEBT_SERIES, series.update));
+  //
+  // SERIES: backend expects DebtSeriesPatch (NOT wrapped)
+  //
+  if (seriesUpdate) {
+    ops.push(patch(PATCH_DEBT_SERIES, seriesUpdate));
   }
 
+  //
   // PRICING INSERTS
+  //
   if (pricing.inserts.length > 0) {
-    ops.push(post(POST_DEBT_PRICING, pricing.inserts));
+    ops.push(post(POST_DEBT_PRICING, { patches: pricing.inserts }));
   }
 
+  //
   // PRICING UPDATES
+  //
   if (pricing.updates.length > 0) {
-    ops.push(patch(PATCH_DEBT_PRICING, pricing.updates));
+    ops.push(patch(PATCH_DEBT_PRICING, { patches: pricing.updates }));
   }
 
+  //
   // PRICING DELETES
+  //
   if (pricing.deletes.length > 0) {
-    ops.push(del(PATCH_DEBT_PRICING, pricing.deletes));
+    ops.push(del(PATCH_DEBT_PRICING, { patches: pricing.deletes }));
   }
 
+  //
   // SERVICE INSERTS
+  //
   if (service.inserts.length > 0) {
-    ops.push(post(POST_DEBT_SERVICE, service.inserts));
+    ops.push(post(POST_DEBT_SERVICE, { patches: service.inserts }));
   }
 
+  //
   // SERVICE UPDATES
+  //
   if (service.updates.length > 0) {
-    ops.push(patch(PATCH_DEBT_SERVICE, service.updates));
+    ops.push(patch(PATCH_DEBT_SERVICE, { patches: service.updates }));
   }
 
+  //
   // SERVICE DELETES
+  //
   if (service.deletes.length > 0) {
-    ops.push(del(PATCH_DEBT_SERVICE, service.deletes));
+    ops.push(del(PATCH_DEBT_SERVICE, { patches: service.deletes }));
   }
 
-  // ⚠ OPTIONAL: if full "delete all series" endpoint is required
-  // ops.push(del(DELETE_ALL_SERIES));
-
-  // -----------------------------
-  // EXECUTE ALL REQUESTS
-  // -----------------------------
-  const results = await Promise.all(ops);
-
-  return results;
+  return Promise.all(ops);
 }
 
 async function post(url: string, body: any) {

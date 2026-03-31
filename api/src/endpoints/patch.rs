@@ -82,7 +82,7 @@ pub async fn patch_debt_service(
                 SET 
                     PAYMENT_DATE = ?, 
                     PRINCIPAL = ?, 
-                    INTEREST = ?, 
+                    INTEREST = ?
                 WHERE ID = ?";
 
             for patch in payload.patches {
@@ -131,12 +131,12 @@ pub async fn patch_debt_pricing(
             let sql = "
                 UPDATE TBL_DEBT_PRICING
                 SET 
-                    MARURITY_DATE = ?,
+                    MATURITY_DATE = ?,
                     AMOUNT = ?, 
                     COUPON_RATE = ?, 
-                    YIELD_RATE = ?, 
+                    YIELD = ?, 
                     PRICE = ?, 
-                    PREMIUM_DISCOUNT = ?, 
+                    PREMIUM_DISCOUNT = ?
                 WHERE ID = ?";
 
             for patch in payload.patches {

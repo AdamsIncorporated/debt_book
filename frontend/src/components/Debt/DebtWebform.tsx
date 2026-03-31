@@ -58,7 +58,7 @@ const DebtWebForm = ({ seriesId }: DebtWebFormProps) => {
 
       <button
         onClick={handleSubmit}
-        className="px-6 py-3 font-semibold rounded-lg shadow-md transition-all bg-gray-600 text-white hover:bg-white-700 active:scale-95"
+        className="px-6 py-3 font-semibold rounded-lg shadow-md transition-all bg-gray-600 text-white hover:cursor-pointer hover:bg-gray-700 active:scale-95"
       >
         Submit Debt Series
       </button>
