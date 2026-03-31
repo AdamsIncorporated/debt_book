@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import DebtWebForm from "./DebtWebForm";
+import { GET_ALL_SERIES } from "../Constants/Constants";
 
 interface DebtSeries {
   id?: number;
@@ -27,7 +28,7 @@ const DebtSeriesLandingTable: React.FC = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const res = await fetch("http://localhost:5000/get/get_all_series");
+        const res = await fetch(GET_ALL_SERIES);
 
         if (!res.ok) {
           throw new Error(`HTTP error! status: ${res.status}`);

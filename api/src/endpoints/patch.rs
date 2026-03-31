@@ -30,7 +30,7 @@ pub async fn patch_debt_series(
                     IS_TAX_EXEMPT = ?, 
                     PAR_AMOUNT = ?, 
                     PREMIUM = ?, 
-                    COST_OF_ISSUANCE = ?, 
+                    COST_OF_ISSUANCE = ?
                 WHERE ID = ?";
 
             let params = (

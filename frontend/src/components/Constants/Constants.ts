@@ -1,3 +1,4 @@
+export const GET_ALL_SERIES = "/api/get/get_all_series";
 export const DELETE_ALL_SERIES = "/api/delete/delete_all_series";
 export const PATCH_DEBT_SERIES = "/api/patch/patch_debt_series";
 export const PATCH_DEBT_SERVICE = "/api/patch/patch_debt_service";
@@ -15,7 +16,7 @@ export interface SeriesNameList {
 export interface DebtSeries {
   id: number | null;
   series_name: string;
-  is_tax_exempt?: boolean;
+  is_tax_exempt?: number;
   par_amount: number;
   premium?: number | null;
   cost_of_issuance?: number | null;

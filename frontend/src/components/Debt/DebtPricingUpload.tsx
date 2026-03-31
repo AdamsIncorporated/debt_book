@@ -78,6 +78,8 @@ const DebtPricingUpload: React.FC<Props> = ({
 
       parsed.push({
         ...entry,
+        id: Number(entry.id),
+        series_id: Number(entry.series_id),
         amount: Number(entry.amount),
         coupon_rate: Number(entry.coupon_rate),
         yield_rate: Number(entry.yield_rate),
@@ -92,6 +94,8 @@ const DebtPricingUpload: React.FC<Props> = ({
     if (!validation.valid) {
       setError(validation.errors); // ❌ show validation errors
       return;
+    } else {
+      console.log("Validation passed, parsed data:", parsed); // ✅ log parsed data
     }
 
     setError(null); // ✅ clear previous errors

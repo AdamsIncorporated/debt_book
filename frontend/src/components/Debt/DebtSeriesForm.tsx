@@ -2,9 +2,7 @@ import React, { useState, useEffect } from "react";
 import { DebtSeries } from "../Constants/Constants";
 
 async function fetchDebtSeriesById(seriesId: number): Promise<DebtSeries> {
-  const res = await fetch(
-    `http://localhost:5000/get/get_debt_series_by_id/${seriesId}`,
-  );
+  const res = await fetch(`api/get/get_debt_series_by_id/${seriesId}`);
   const data = await res.json();
   return {
     id: data[0].id,
@@ -27,6 +25,7 @@ function DebtSeriesForm({
   onInitialLoad: (v: any) => void;
 }) {
   const [form, setForm] = useState({
+    id: 0,
     seriesName: "",
     isTaxExempt: false,
     parAmount: "",
@@ -39,8 +38,9 @@ function DebtSeriesForm({
     fetchDebtSeriesById(seriesId)
       .then((data) => {
         setForm({
+          id: data.id ?? 0,
           seriesName: data.series_name ?? "",
-          isTaxExempt: data.is_tax_exempt ?? false,
+          isTaxExempt: data.is_tax_exempt == 1,
           parAmount: data.par_amount?.toString() ?? "",
           premium: data.premium?.toString() ?? "",
           costOfIssuance: data.cost_of_issuance?.toString() ?? "",
@@ -73,13 +73,16 @@ function DebtSeriesForm({
   const handleChange = (updated: typeof form) => {
     setForm(updated);
     if (updated.seriesName && Number(updated.parAmount) > 0) {
-      onChange({
-        seriesName: updated.seriesName,
-        isTaxExempt: updated.isTaxExempt,
-        parAmount: Number(updated.parAmount),
+      const debtSeries: DebtSeries = {
+        id: updated.id ?? null,
+        series_name: updated.seriesName,
+        is_tax_exempt: Number(updated.isTaxExempt),
+        par_amount: Number(updated.parAmount),
         premium: Number(updated.premium || 0),
-        costOfIssuance: Number(updated.costOfIssuance || 0),
-      });
+        cost_of_issuance: Number(updated.costOfIssuance || 0),
+      };
+
+      onChange(debtSeries);
     }
   };
 

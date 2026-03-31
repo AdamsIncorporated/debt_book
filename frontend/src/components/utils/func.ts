@@ -8,7 +8,7 @@ import {
   POST_DEBT_PRICING,
   POST_DEBT_SERVICE,
   DELETE_ALL_SERIES,
-} from "components/Constants/Constants";
+} from "../Constants/Constants";
 import ExcelJS from "exceljs";
 
 export async function downloadExcelTemplate(
