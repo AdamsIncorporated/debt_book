@@ -361,3 +361,13 @@ async function del(url: string, body?: any) {
     throw err;
   }
 }
+
+export function formatNumber(value: any) {
+  if (value === null || value === undefined || value === "") return "";
+  const num = Number(value);
+  if (isNaN(num)) return value;
+  return num.toLocaleString("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+}

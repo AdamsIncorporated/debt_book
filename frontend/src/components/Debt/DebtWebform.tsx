@@ -3,6 +3,7 @@ import DebtSeriesForm from "./DebtSeriesForm";
 import DebtPricingUpload from "./DebtPricingUpload";
 import DebtServiceUpload from "./DebtServiceUpload";
 import { performCrudOperations, SubmitPayload } from "../utils/func";
+import { runWithToasts } from "../Widgets/toast";
 
 type DebtWebFormProps = {
   seriesId: number;
@@ -17,23 +18,14 @@ const DebtWebForm = ({ seriesId }: DebtWebFormProps) => {
   const [pricingFormData, setPricingFormData] = useState<any[]>([]);
   const [serviceFormData, setServiceFormData] = useState<any[]>([]);
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     const payload: SubmitPayload = {
-      series: {
-        original: seriesOriginal,
-        current: seriesFormData,
-      },
-      pricing: {
-        original: pricingOriginal,
-        current: pricingFormData,
-      },
-      service: {
-        original: serviceOriginal,
-        current: serviceFormData,
-      },
+      series: { original: seriesOriginal, current: seriesFormData },
+      pricing: { original: pricingOriginal, current: pricingFormData },
+      service: { original: serviceOriginal, current: serviceFormData },
     };
 
-    performCrudOperations(payload);
+    await runWithToasts(() => performCrudOperations(payload));
   };
 
   return (

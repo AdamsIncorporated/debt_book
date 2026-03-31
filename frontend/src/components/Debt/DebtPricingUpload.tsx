@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from "react";
 import ExcelJS from "exceljs";
-import { downloadExcelTemplate, validateDebtPricingBatch } from "../utils/func";
+import {
+  downloadExcelTemplate,
+  validateDebtPricingBatch,
+  formatNumber,
+} from "../utils/func";
 import { DebtPricing } from "../Constants/Constants";
-import { on } from "events";
 
 interface Props {
   seriesId: number;
@@ -11,15 +14,32 @@ interface Props {
 }
 
 // ✅ Single source of truth — drives headers, table, and Excel export
-const COLUMNS: { label: string; key: keyof DebtPricing; align?: "right" }[] = [
+const COLUMNS: {
+  label: string;
+  key: keyof DebtPricing;
+  align?: "right";
+  format?: "number";
+}[] = [
   { label: "Id", key: "id" },
   { label: "Series Id", key: "series_id" },
   { label: "Maturity Date", key: "maturity_date" },
-  { label: "Amount", key: "amount", align: "right" },
-  { label: "Coupon Rate", key: "coupon_rate", align: "right" },
-  { label: "Yield Rate", key: "yield_rate", align: "right" },
-  { label: "Price", key: "price", align: "right" },
-  { label: "Premium/Discount", key: "premium_discount", align: "right" },
+
+  // numeric columns (add format: "number")
+  { label: "Amount", key: "amount", align: "right", format: "number" },
+  {
+    label: "Coupon Rate",
+    key: "coupon_rate",
+    align: "right",
+    format: "number",
+  },
+  { label: "Yield Rate", key: "yield_rate", align: "right", format: "number" },
+  { label: "Price", key: "price", align: "right", format: "number" },
+  {
+    label: "Premium/Discount",
+    key: "premium_discount",
+    align: "right",
+    format: "number",
+  },
 ];
 
 async function fetchDebtPricing(seriesId: number): Promise<DebtPricing[]> {
@@ -175,7 +195,9 @@ const DebtPricingUpload: React.FC<Props> = ({
                         c.align === "right" ? "text-right" : ""
                       }`}
                     >
-                      {row[c.key]}
+                      {c.format === "number"
+                        ? formatNumber(row[c.key])
+                        : row[c.key]}
                     </td>
                   ))}
                 </tr>
