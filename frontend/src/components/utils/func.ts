@@ -170,3 +170,69 @@ export function validateDebtPricingBatch(
     errors,
   };
 }
+
+type DiffResult<T> = {
+  inserts: T[];
+  updates: T[];
+  deletes: T[];
+};
+
+export type SubmitPayload = {
+  series: { original: any; current: any };
+  pricing: { original: any[]; current: any[] };
+  service: { original: any[]; current: any[] };
+};
+
+export function diffArray<T extends { id?: number }>(
+  original: T[],
+  current: T[],
+): DiffResult<T> {
+  const inserts: T[] = [];
+  const updates: T[] = [];
+  const deletes: T[] = [];
+
+  const origMap = new Map(original.map((item) => [item.id, item]));
+
+  // INSERTS + UPDATES
+  current.forEach((item) => {
+    if (!item.id) {
+      inserts.push(item);
+    } else {
+      const orig = origMap.get(item.id);
+      if (orig && JSON.stringify(orig) !== JSON.stringify(item)) {
+        updates.push(item);
+      }
+    }
+  });
+
+  // DELETES
+  original.forEach((item) => {
+    const stillExists = current.some((r) => r.id === item.id);
+    if (!stillExists) deletes.push(item);
+  });
+
+  return { inserts, updates, deletes };
+}
+
+export function performCrudOperations(payload: SubmitPayload) {
+  // SERIES (single object, not array)
+  const seriesChanged =
+    JSON.stringify(payload.series.original) !==
+    JSON.stringify(payload.series.current);
+
+  const series = {
+    update: seriesChanged ? payload.series.current : null,
+  };
+
+  // PRICING ARRAY DIFF
+  const pricing = diffArray(payload.pricing.original, payload.pricing.current);
+
+  // SERVICE ARRAY DIFF
+  const service = diffArray(payload.service.original, payload.service.current);
+
+  console.log("CRUD PACKAGE:", {
+    series,
+    pricing,
+    service,
+  });
+}

@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import DebtSeriesForm from "./DebtSeriesForm";
 import DebtPricingUpload from "./DebtPricingUpload";
 import DebtServiceUpload from "./DebtServiceUpload";
+import { performCrudOperations, SubmitPayload } from "../utils/func";
 
 type DebtWebFormProps = {
   seriesId: number;
@@ -22,11 +23,22 @@ const DebtWebForm = ({ seriesId }: DebtWebFormProps) => {
   const handleSubmit = () => {
     if (!isValid) return alert("Missing required data");
 
-    // example diffing:
-    console.log("Series diff:", {
-      before: seriesOriginal,
-      after: seriesFormData,
-    });
+    const payload: SubmitPayload = {
+      series: {
+        original: seriesOriginal,
+        current: seriesFormData,
+      },
+      pricing: {
+        original: pricingOriginal,
+        current: pricingFormData,
+      },
+      service: {
+        original: serviceOriginal,
+        current: serviceFormData,
+      },
+    };
+
+    performCrudOperations(payload);
   };
 
   return (
