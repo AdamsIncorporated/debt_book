@@ -121,7 +121,10 @@ const DebtServiceUpload: React.FC<Props> = ({
   return (
     <div className="space-y-8">
       {/* Title */}
-      <h3 className="text-lg font-semibold">Debt Pricing Upload</h3>
+      <h3 className="text-gray-700 text-3xl font-semibold">
+        Debt Service Upload
+      </h3>
+      <div className="mt-2 w-full h-1 bg-gray-300 rounded-full"></div>
 
       {/* Beautiful Spaced Upload Bar */}
       <div className="mt-4">

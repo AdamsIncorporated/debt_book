@@ -43,7 +43,7 @@ const COLUMNS: {
 async function fetchDebtPricing(seriesId: number): Promise<DebtPricing[]> {
   try {
     const res = await fetch(
-      `http://localhost:5000/get/get_debt_series_pricing_by_id/${seriesId}`,
+      `api/get/get_debt_series_pricing_by_id/${seriesId}`,
     );
     const data = await res.json();
     return data.map((item: any) => ({
@@ -132,7 +132,10 @@ const DebtPricingUpload: React.FC<Props> = ({
   return (
     <div className="space-y-8">
       {/* Title */}
-      <h3 className="text-lg font-semibold">Debt Pricing Upload</h3>
+      <h3 className="text-gray-700 text-3xl font-semibold">
+        Debt Pricing Upload
+      </h3>
+      <div className="mt-2 w-full h-1 bg-gray-300 rounded-full"></div>
 
       {/* Beautiful Spaced Upload Bar */}
       <div className="mt-4">

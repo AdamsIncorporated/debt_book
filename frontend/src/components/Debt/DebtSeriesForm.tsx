@@ -105,7 +105,6 @@ function DebtSeriesForm({
         name="parAmount"
         type="number"
         placeholder="Par Amount"
-        disabled
         value={form.parAmount}
         onChange={(e) => handleChange({ ...form, parAmount: e.target.value })}
         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition"
