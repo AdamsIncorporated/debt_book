@@ -29,31 +29,43 @@ const DebtWebForm = ({ seriesId }: DebtWebFormProps) => {
   };
 
   return (
-    <div className="space-y-8 mx-auto w-1/2 py-10">
-      <DebtSeriesForm
-        seriesId={seriesId}
-        onChange={setSeriesFormData}
-        onInitialLoad={setSeriesOriginal}
-      />
+    <div className="space-y-12 mx-auto py-10">
+      {/* Series Form → narrow */}
+      <div className="mx-auto w-1/2">
+        <DebtSeriesForm
+          seriesId={seriesId}
+          onChange={setSeriesFormData}
+          onInitialLoad={setSeriesOriginal}
+        />
+      </div>
 
-      <DebtPricingUpload
-        seriesId={seriesId}
-        onChange={setPricingFormData}
-        onInitialLoad={setPricingOriginal}
-      />
+      {/* Pricing Upload → wide */}
+      <div className="mx-auto w-5/6">
+        <DebtPricingUpload
+          seriesId={seriesId}
+          onChange={setPricingFormData}
+          onInitialLoad={setPricingOriginal}
+        />
+      </div>
 
-      <DebtServiceUpload
-        seriesId={seriesId}
-        onChange={setServiceFormData}
-        onInitialLoad={setServiceOriginal}
-      />
+      {/* Service Upload → wide */}
+      <div className="mx-auto w-5/6">
+        <DebtServiceUpload
+          seriesId={seriesId}
+          onChange={setServiceFormData}
+          onInitialLoad={setServiceOriginal}
+        />
+      </div>
 
-      <button
-        onClick={handleSubmit}
-        className="px-6 py-3 font-semibold rounded-lg shadow-md transition-all bg-gray-600 text-white hover:cursor-pointer hover:bg-gray-700 active:scale-95"
-      >
-        Submit Debt Series
-      </button>
+      {/* Submit Button */}
+      <div className="mx-auto w-1/2">
+        <button
+          onClick={handleSubmit}
+          className="px-6 py-3 font-semibold rounded-lg shadow-md transition-all bg-gray-600 text-white hover:cursor-pointer hover:bg-gray-700 active:scale-95 w-full"
+        >
+          Submit Debt Series
+        </button>
+      </div>
     </div>
   );
 };
