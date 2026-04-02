@@ -4,12 +4,15 @@ import DebtPricingUpload from "./DebtPricingUpload";
 import DebtServiceUpload from "./DebtServiceUpload";
 import { performCrudOperations, SubmitPayload } from "../utils/func";
 import { runWithToasts } from "../Widgets/toast";
+import { useNavigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
 
-type DebtWebFormProps = {
-  seriesId?: number | null;
-};
+const DebtWebForm = () => {
+  const navigate = useNavigate();
+  const { id } = useParams<{ id?: string }>();
+  const seriesId = id ? Number(id) : null;
+  console.log("DebtWebForm initialized with seriesId:", seriesId);
 
-const DebtWebForm = ({ seriesId = null }: DebtWebFormProps) => {
   const [seriesOriginal, setSeriesOriginal] = useState<any>(null);
   const [pricingOriginal, setPricingOriginal] = useState<any[]>([]);
   const [serviceOriginal, setServiceOriginal] = useState<any[]>([]);
@@ -29,11 +32,11 @@ const DebtWebForm = ({ seriesId = null }: DebtWebFormProps) => {
   };
 
   return (
-    <div>
+    <div className="m-6">
       {/* Back (Refresh) Button */}
       <div className="w-auto">
         <button
-          onClick={() => window.location.reload()}
+          onClick={() => navigate("/")}
           className="
       px-6 py-3 
       font-semibold rounded-lg shadow-md 

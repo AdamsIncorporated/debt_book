@@ -1,4 +1,7 @@
 export const GET_ALL_SERIES = "/api/get/get_all_series";
+export const GET_SERIES_BY_ID = "/api/get/get_debt_series_by_id/";
+export const getSeriesPricingById = (id: number) =>
+  `/api/get/get_debt_series_pricing_by_id/${id}`;
 export const DELETE_ALL_SERIES = "/api/delete/delete_all_series";
 export const PATCH_DEBT_SERIES = "/api/patch/patch_debt_series";
 export const PATCH_DEBT_SERVICE = "/api/patch/patch_debt_service";

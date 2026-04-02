@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
-import DebtWebForm from "./DebtWebForm";
 import { GET_ALL_SERIES } from "../Constants/Constants";
 import { DebtSeries } from "../Constants/Constants";
 import React from "react";
+import { useNavigate } from "react-router-dom";
 
 const SkeletonRow = () => (
   <tr className="animate-pulse">
@@ -18,6 +18,7 @@ const formatCurrency = (value?: number) =>
   value !== undefined ? value.toLocaleString() : "—";
 
 const DebtSeriesLandingTable: React.FC = () => {
+  const navigate = useNavigate();
   const [series, setSeries] = useState<DebtSeries[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -112,7 +113,7 @@ const DebtSeriesLandingTable: React.FC = () => {
                 <td className="px-4 py-3 text-center">
                   <button
                     className="px-4 py-2 shadow hover:bg-gray-200 rounded-md transition hover:cursor-pointer"
-                    onClick={() => <DebtWebForm seriesId={s.id} />}
+                    onClick={() => navigate(`/debt-series/${s.id}`)}
                   >
                     ✏️
                   </button>
@@ -134,7 +135,7 @@ const DebtSeriesLandingTable: React.FC = () => {
       {/* ✅ Create new */}
       <div className="my-4 flex justify-end">
         <button
-          onClick={() => <DebtWebForm seriesId={null} />}
+          onClick={() => navigate("/create-new-series")}
           className="rounded-md bg-gray-500 px-4 py-2 text-sm font-medium text-white hover:bg-gray-600 transition hover:cursor-pointer"
         >
           ✨ Create New Series

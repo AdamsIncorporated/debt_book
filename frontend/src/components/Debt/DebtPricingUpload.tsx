@@ -4,6 +4,8 @@ import { downloadExcelTemplate, validateDebtPricingBatch } from "../utils/func";
 import { DebtPricing } from "../Constants/Constants";
 import { DataTable } from "../Widgets/DataTable";
 import { UploadBar } from "../Widgets/UploadBar";
+import { fetchById } from "../utils/api";
+import { getSeriesPricingById } from "../Constants/Constants";
 
 interface Props {
   seriesId: number | null;
@@ -40,27 +42,6 @@ const COLUMNS: {
   },
 ];
 
-async function fetchDebtPricing(seriesId: number): Promise<DebtPricing[]> {
-  try {
-    const res = await fetch(
-      `api/get/get_debt_series_pricing_by_id/${seriesId}`,
-    );
-    const data = await res.json();
-    return data.map((item: any) => ({
-      id: item.id,
-      series_id: item.series_id,
-      maturity_date: item.maturity_date,
-      amount: Number(item.amount),
-      coupon_rate: Number(item.coupon_rate),
-      yield_rate: Number(item.yield_rate),
-      price: Number(item.price),
-      premium_discount: Number(item.premium_discount),
-    }));
-  } catch {
-    return [];
-  }
-}
-
 const DebtPricingUpload: React.FC<Props> = ({
   seriesId,
   onChange,
@@ -71,7 +52,11 @@ const DebtPricingUpload: React.FC<Props> = ({
 
   useEffect(() => {
     if (seriesId === null) return;
-    fetchDebtPricing(seriesId).then((data) => {
+    fetchById<DebtPricing[]>({
+      endpoint: getSeriesPricingById(seriesId),
+      entityName: "Debt Series Pricing",
+      mapResponse: (raw) => raw,
+    }).then((data) => {
       if (data.length > 0) {
         setRows(data);
         onInitialLoad(data);

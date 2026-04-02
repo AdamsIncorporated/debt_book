@@ -7,10 +7,7 @@ export default function AppRoutes() {
   return (
     <Routes>
       <Route path="/" element={<DebtSeriesLandingTable />} />
-      <Route
-        path="/debt-series/new"
-        element={<DebtWebForm seriesId={null} />}
-      />
+      <Route path="/create-new-series" element={<DebtWebForm />} />
       <Route path="/debt-series/:id" element={<DebtWebForm />} />
     </Routes>
   );
