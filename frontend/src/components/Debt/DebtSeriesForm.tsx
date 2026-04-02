@@ -20,7 +20,7 @@ function DebtSeriesForm({
   onChange,
   onInitialLoad,
 }: {
-  seriesId: number;
+  seriesId: number | null;
   onChange: (v: any) => void;
   onInitialLoad: (v: any) => void;
 }) {
@@ -35,6 +35,8 @@ function DebtSeriesForm({
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
+    if (seriesId === null) return;
+    setLoaded(true);
     fetchDebtSeriesById(seriesId)
       .then((data) => {
         setForm({

@@ -1,12 +1,13 @@
 import React from "react";
-import DebtSeriesLandingTable from "./components/Debt/DebtSeriesLandingTable";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import AppRoutes from "./components/Debt/DebtRouting";
+
 
 const App: React.FC = () => {
   return (
     <div>
-      <DebtSeriesLandingTable />
+      <AppRoutes />
       <ToastContainer />
     </div>
   );

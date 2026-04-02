@@ -6,7 +6,7 @@ import { DataTable } from "../Widgets/DataTable";
 import { UploadBar } from "../Widgets/UploadBar";
 
 interface Props {
-  seriesId: number;
+  seriesId: number | null;
   onChange: (v: DebtPricing[]) => void;
   onInitialLoad: (v: DebtPricing[]) => void;
 }
@@ -70,6 +70,7 @@ const DebtPricingUpload: React.FC<Props> = ({
   const [error, setError] = useState<string[] | null>(null);
 
   useEffect(() => {
+    if (seriesId === null) return;
     fetchDebtPricing(seriesId).then((data) => {
       if (data.length > 0) {
         setRows(data);

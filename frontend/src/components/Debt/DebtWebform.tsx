@@ -6,10 +6,10 @@ import { performCrudOperations, SubmitPayload } from "../utils/func";
 import { runWithToasts } from "../Widgets/toast";
 
 type DebtWebFormProps = {
-  seriesId: number;
+  seriesId?: number | null;
 };
 
-const DebtWebForm = ({ seriesId }: DebtWebFormProps) => {
+const DebtWebForm = ({ seriesId = null }: DebtWebFormProps) => {
   const [seriesOriginal, setSeriesOriginal] = useState<any>(null);
   const [pricingOriginal, setPricingOriginal] = useState<any[]>([]);
   const [serviceOriginal, setServiceOriginal] = useState<any[]>([]);
