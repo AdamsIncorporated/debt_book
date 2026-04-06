@@ -6,6 +6,7 @@ type Props = {
   seriesId: number | null;
   onChange: (v: DebtSeries) => void;
   onInitialLoad: (v: any) => void;
+  onValidate(results: { valid: boolean; errors: string[] }): void;
 };
 
 const DebtSeriesForm: React.FC<Props> = ({

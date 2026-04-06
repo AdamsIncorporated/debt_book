@@ -8,6 +8,7 @@ import {
   POST_DEBT_PRICING,
   POST_DEBT_SERVICE,
   DELETE_ALL_SERIES,
+  DebtSeries,
 } from "../Constants/Constants";
 import ExcelJS from "exceljs";
 
@@ -47,10 +48,33 @@ export async function downloadExcelTemplate(
   URL.revokeObjectURL(url);
 }
 
-export function validateDebtServiceBatch(
-  batch: DebtService[],
-  store: DebtService[],
-): { valid: boolean; errors: string[] } {
+export const validateDebtSeries = (
+  batch: DebtSeries,
+): { valid: boolean; errors: string[] } => {
+  const errors: string[] = [];
+
+  if (!batch.series_name.trim()) {
+    errors.push("Series Name is required.");
+  }
+
+  if (!batch.par_amount || Number(batch.par_amount) <= 0) {
+    errors.push("Par Amount must be greater than 0.");
+  }
+
+  if (Number(batch.premium) < 0) {
+    errors.push("Premium cannot be negative.");
+  }
+
+  return {
+    valid: errors.length === 0,
+    errors,
+  };
+};
+
+export function validateDebtServiceBatch(batch: DebtService[]): {
+  valid: boolean;
+  errors: string[];
+} {
   const errors: string[] = [];
 
   // TRACKER: Prevent duplicate payment_date values within this uploaded batch

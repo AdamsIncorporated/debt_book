@@ -6,6 +6,7 @@ import { performCrudOperations, SubmitPayload } from "../utils/func";
 import { runWithToasts } from "../Widgets/toast";
 import { useNavigate } from "react-router-dom";
 import { useParams } from "react-router-dom";
+import { toast } from "react-toastify";
 
 const DebtWebForm = () => {
   const navigate = useNavigate();
@@ -21,7 +22,20 @@ const DebtWebForm = () => {
   const [pricingFormData, setPricingFormData] = useState<any[]>([]);
   const [serviceFormData, setServiceFormData] = useState<any[]>([]);
 
+  const [seriesValid, setSeriesValid] = useState(false);
+  const [pricingValid, setPricingValid] = useState(false);
+  const [serviceValid, setServiceValid] = useState(false);
+
   const handleSubmit = async () => {
+    const formValid = seriesValid && pricingValid && serviceValid;
+
+    if (!formValid) {
+      toast.error(
+        "You have validation errors. Please fix them before submitting.",
+      );
+      return;
+    }
+
     const payload: SubmitPayload = {
       series: { original: seriesOriginal, current: seriesFormData },
       pricing: { original: pricingOriginal, current: pricingFormData },
@@ -56,6 +70,7 @@ const DebtWebForm = () => {
             seriesId={seriesId}
             onChange={setSeriesFormData}
             onInitialLoad={setSeriesOriginal}
+            onValidate={({ valid }) => setSeriesValid(valid)}
           />
         </div>
 
@@ -65,6 +80,7 @@ const DebtWebForm = () => {
             seriesId={seriesId}
             onChange={setPricingFormData}
             onInitialLoad={setPricingOriginal}
+            onValidate={({ valid }) => setPricingValid(valid)}
           />
         </div>
 
@@ -74,6 +90,7 @@ const DebtWebForm = () => {
             seriesId={seriesId}
             onChange={setServiceFormData}
             onInitialLoad={setServiceOriginal}
+            onValidate={({ valid }) => setServiceValid(valid)}
           />
         </div>
       </div>

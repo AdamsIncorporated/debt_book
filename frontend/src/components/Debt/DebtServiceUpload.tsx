@@ -9,6 +9,7 @@ interface Props {
   seriesId: number | null;
   onChange: (rows: DebtService[]) => void;
   onInitialLoad: (rows: DebtService[]) => void;
+  onValidate(results: { valid: boolean; errors: string[] }): void;
 }
 
 // ✅ Single source of truth — drives headers, table, and Excel export
@@ -51,6 +52,7 @@ const DebtServiceUpload: React.FC<Props> = ({
   seriesId,
   onChange,
   onInitialLoad,
+  onValidate,
 }) => {
   const [rows, setRows] = useState<DebtService[]>([]);
   const [error, setError] = useState<string[] | null>(null);

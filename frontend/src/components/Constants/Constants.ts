@@ -42,7 +42,7 @@ export interface DebtPricing {
 // Represents debt service information
 export interface DebtService {
   id: number | null;
-  series_id: number;
+  series_id: number | null;
   payment_date: string; // YYYY-MM-DD
   principal?: number | null;
   interest?: number | null;

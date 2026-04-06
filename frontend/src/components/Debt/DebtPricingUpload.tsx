@@ -6,11 +6,13 @@ import { DataTable } from "../Widgets/DataTable";
 import { UploadBar } from "../Widgets/UploadBar";
 import { fetchById } from "../utils/api";
 import { getSeriesPricingById } from "../Constants/Constants";
+import { validateDebtSeries } from "../utils/func";
 
 interface Props {
   seriesId: number | null;
   onChange: (v: DebtPricing[]) => void;
   onInitialLoad: (v: DebtPricing[]) => void;
+  onValidate: (results: { valid: boolean; errors: string[] }) => void;
 }
 
 // ✅ Single source of truth — drives headers, table, and Excel export
@@ -46,6 +48,7 @@ const DebtPricingUpload: React.FC<Props> = ({
   seriesId,
   onChange,
   onInitialLoad,
+  onValidate,
 }) => {
   const [rows, setRows] = useState<DebtPricing[]>([]);
   const [error, setError] = useState<string[] | null>(null);
@@ -97,9 +100,11 @@ const DebtPricingUpload: React.FC<Props> = ({
 
     if (!validation.valid) {
       setError(validation.errors); // ❌ show validation errors
+      onValidate({ valid: false, errors: validation.errors }); // ❌ notify parent of validation failure
       return;
     } else {
       console.log("Validation passed, parsed data:", parsed); // ✅ log parsed data
+      onValidate({ valid: true, errors: [] }); // ✅ notify parent of successful validation
     }
 
     setError(null); // ✅ clear previous errors
