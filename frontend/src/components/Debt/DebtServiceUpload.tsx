@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from "react";
 import ExcelJS from "exceljs";
-import { downloadExcelTemplate } from "../utils/func";
+import { downloadExcelTemplate, excelDateToJSONString } from "../utils/func";
 import { DebtService } from "../Constants/Constants";
 import { DataTable } from "../Widgets/DataTable";
 import { UploadBar } from "../Widgets/UploadBar";
 import { validateDebtServiceBatch } from "../utils/validate";
+import { fetchById } from "../utils/api";
+import { getSeriesDebtServiceById } from "../Constants/Constants";
 
 interface Props {
   seriesId: number | null;
@@ -27,26 +29,6 @@ const COLUMNS: {
   { label: "Principal", key: "principal", align: "right", format: "number" },
   { label: "Interest", key: "interest", align: "right", format: "number" },
 ];
-``;
-
-async function fetchDebtService(seriesId: number): Promise<DebtService[]> {
-  try {
-    const res = await fetch(
-      `api/get/get_debt_series_service_by_id/${seriesId}`,
-    );
-    const data = await res.json();
-
-    return data.map((item: any) => ({
-      id: item.id ?? null,
-      series_id: item.series_id,
-      payment_date: item.payment_date,
-      principal: Number(item.principal ?? 0),
-      interest: Number(item.interest ?? 0),
-    }));
-  } catch {
-    return [];
-  }
-}
 
 const DebtServiceUpload: React.FC<Props> = ({
   seriesId,
@@ -60,7 +42,11 @@ const DebtServiceUpload: React.FC<Props> = ({
   // Load existing server-side rows
   useEffect(() => {
     if (seriesId === null) return;
-    fetchDebtService(seriesId).then((data) => {
+    fetchById<DebtService[]>({
+      endpoint: getSeriesDebtServiceById(seriesId),
+      entityName: "Debt Series Service Schedule",
+      mapResponse: (raw) => raw,
+    }).then((data) => {
       if (data.length > 0) {
         setRows(data);
         onInitialLoad(data);
@@ -69,7 +55,7 @@ const DebtServiceUpload: React.FC<Props> = ({
     });
   }, [seriesId]);
 
-  const handleUpload = async (file: File, store: DebtService[]) => {
+  const handleUpload = async (file: File) => {
     const wb = new ExcelJS.Workbook();
     await wb.xlsx.load(await file.arrayBuffer());
     const ws = wb.worksheets[0];
@@ -90,12 +76,11 @@ const DebtServiceUpload: React.FC<Props> = ({
       );
 
       parsed.push({
-        id: entry.id ? Number(entry.id) : null,
-        series_id: entry.series_id ? Number(entry.series_id) : seriesId,
-        payment_date: entry.payment_date?.toString(),
-        principal: Number(entry.principal ?? 0),
-        interest: Number(entry.interest ?? 0),
-      });
+        id: entry.id,
+        payment_date: excelDateToJSONString(entry.payment_date),
+        principal: Number(entry.principal),
+        interest: Number(entry.interest),
+      } as DebtService);
     });
 
     // Validate against existing store rows
@@ -132,7 +117,7 @@ const DebtServiceUpload: React.FC<Props> = ({
       {/* Beautiful Spaced Upload Bar */}
       <div className="mt-4">
         <UploadBar
-          onUpload={(file) => handleUpload(file, rows)}
+          onUpload={(file) => handleUpload(file)}
           onDownload={handleDownload}
         />
       </div>

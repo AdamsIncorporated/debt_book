@@ -10,14 +10,8 @@ type Props = {
 export function UploadBar({ onUpload, onDownload }: Props) {
   return (
     <div className="flex items-center gap-4 w-full">
-      <FancyUploadButton
-        label="Upload Excel Pricing Schedule"
-        onUpload={onUpload}
-      />
-      <FancyDownloadButton
-        label="Download Template"
-        onClick={onDownload}
-      />
+      <FancyUploadButton label="Upload Excel Schedule" onUpload={onUpload} />
+      <FancyDownloadButton label="Download Template" onClick={onDownload} />
     </div>
   );
 }

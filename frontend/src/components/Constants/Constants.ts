@@ -2,6 +2,8 @@ export const GET_ALL_SERIES = "/api/get/get_all_series";
 export const GET_SERIES_BY_ID = "/api/get/get_debt_series_by_id/";
 export const getSeriesPricingById = (id: number) =>
   `/api/get/get_debt_series_pricing_by_id/${id}`;
+export const getSeriesDebtServiceById = (id: number) =>
+  `/api/get/get_debt_series_service_by_id/${id}`;
 export const DELETE_ALL_SERIES = "/api/delete/delete_all_series";
 export const PATCH_DEBT_SERIES = "/api/patch/patch_debt_series";
 export const PATCH_DEBT_SERVICE = "/api/patch/patch_debt_service";
@@ -23,14 +25,14 @@ export interface DebtSeries {
   par_amount: number;
   premium?: number | null;
   cost_of_issuance?: number | null;
-  created_at?: string | null; // optional timestamp string
+  created_at?: string | null;
 }
 
 // Represents debt pricing information
 export interface DebtPricing {
   id: number | null;
   series_id: number | null;
-  maturity_date: string; // YYYY-MM-DD
+  maturity_date: string;
   amount: number;
   coupon_rate: number;
   yield_rate: number;
@@ -43,7 +45,7 @@ export interface DebtPricing {
 export interface DebtService {
   id: number | null;
   series_id: number | null;
-  payment_date: string; // YYYY-MM-DD
+  payment_date: string;
   principal?: number | null;
   interest?: number | null;
   created_at?: string | null;

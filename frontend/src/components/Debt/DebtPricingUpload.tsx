@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import ExcelJS from "exceljs";
-import { downloadExcelTemplate } from "../utils/func";
+import { downloadExcelTemplate, excelDateToJSONString } from "../utils/func";
 import { validateDebtPricingBatch } from "../utils/validate";
 import { DebtPricing } from "../Constants/Constants";
 import { DataTable } from "../Widgets/DataTable";
@@ -85,7 +85,7 @@ const DebtPricingUpload: React.FC<Props> = ({
       parsed.push({
         ...entry,
         id: Number(entry.id),
-        maturity_date: entry.maturity_date,
+        maturity_date: excelDateToJSONString(entry.maturity_date),
         amount: Number(entry.amount),
         coupon_rate: Number(entry.coupon_rate),
         yield_rate: Number(entry.yield_rate),

@@ -1,16 +1,38 @@
 import {
-  DebtPricing,
-  DebtService,
   PATCH_DEBT_SERIES,
   PATCH_DEBT_PRICING,
   PATCH_DEBT_SERVICE,
-  POST_DEBT_SERIES,
   POST_DEBT_PRICING,
   POST_DEBT_SERVICE,
-  DELETE_ALL_SERIES,
-  DebtSeries,
 } from "../Constants/Constants";
 import ExcelJS from "exceljs";
+
+export function excelDateToJSONString(value: unknown): string {
+  let date: Date;
+
+  // 1️⃣ Already a JS Date
+  if (value instanceof Date) {
+    date = value;
+  }
+  // 2️⃣ Excel serial number
+  else if (typeof value === "number") {
+    // Excel epoch starts at 1899-12-30
+    date = new Date((value - 25569) * 86400 * 1000);
+  }
+  // 3️⃣ String date
+  else if (typeof value === "string") {
+    const parsed = new Date(value);
+    if (isNaN(parsed.getTime())) {
+      throw new Error(`Invalid date string: ${value}`);
+    }
+    date = parsed;
+  } else {
+    throw new Error(`Unsupported date value: ${value}`);
+  }
+
+  // ✅ Force YYYY-MM-DD
+  return date.toISOString().split("T")[0];
+}
 
 export async function downloadExcelTemplate(
   fileName: string,
@@ -47,7 +69,6 @@ export async function downloadExcelTemplate(
   a.click();
   URL.revokeObjectURL(url);
 }
-
 
 type DiffResult<T> = {
   inserts: T[];

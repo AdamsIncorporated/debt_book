@@ -1,5 +1,30 @@
 import { DebtSeries, DebtPricing, DebtService } from "../Constants/Constants";
 
+function isValidExcelDate(value: unknown): boolean {
+  console.log("Validating date value:", value);
+
+  // 1. Already a Date object
+  if (value instanceof Date && !isNaN(value.getTime())) {
+    return true;
+  }
+
+  // 2. Excel serial number
+  if (typeof value === "number") {
+    return value > 0; // Excel dates start at 1
+  }
+
+  // 3. String formats
+  if (typeof value === "string") {
+    // ISO: YYYY-MM-DD
+    if (/^\d{4}-\d{2}-\d{2}$/.test(value)) return true;
+
+    // US Excel: M/D/YYYY or MM/DD/YYYY
+    if (/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(value)) return true;
+  }
+
+  return false;
+}
+
 export const validateDebtSeries = (
   batch: DebtSeries,
 ): { valid: boolean; errors: string[] } => {
@@ -28,6 +53,11 @@ export function validateDebtServiceBatch(batch: DebtService[]): {
   errors: string[];
 } {
   const errors: string[] = [];
+
+  if (batch.length === 0) {
+    errors.push("No rows to validate. Please insert at least one row of data.");
+    return { valid: false, errors };
+  }
 
   // TRACKER: Prevent duplicate payment_date values within this uploaded batch
   const seenDates = new Set<string>();
@@ -64,9 +94,9 @@ export function validateDebtServiceBatch(batch: DebtService[]): {
     // ---------------------------------------------------------
     // 3. Validate payment_date format (YYYY-MM-DD)
     // ---------------------------------------------------------
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(item.payment_date)) {
+    if (!isValidExcelDate(item.payment_date)) {
       errors.push(
-        `Invalid date format for payment_date: "${item.payment_date}". Expected YYYY-MM-DD.`,
+        `Invalid Excel date format for payment_date: "${item.payment_date}".`,
       );
     }
 
@@ -94,6 +124,11 @@ export function validateDebtPricingBatch(batch: DebtPricing[]): {
   errors: string[];
 } {
   const errors: string[] = [];
+
+  if (batch.length === 0) {
+    errors.push("No rows to validate. Please insert at least one row of data.");
+    return { valid: false, errors };
+  }
 
   // TRACKER: Prevent duplicate maturity dates within uploaded file
   const seenMaturities = new Set<string>();
@@ -142,9 +177,9 @@ export function validateDebtPricingBatch(batch: DebtPricing[]): {
     // ---------------------------------------------------------
     // 4. Validate date format (YYYY-MM-DD)
     // ---------------------------------------------------------
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(item.maturity_date)) {
+    if (!isValidExcelDate(item.maturity_date)) {
       errors.push(
-        `Invalid date format for maturity_date: "${item.maturity_date}". Expected YYYY-MM-DD.`,
+        `Invalid Excel date format for maturity_date: "${item.maturity_date}".`,
       );
     }
   }
