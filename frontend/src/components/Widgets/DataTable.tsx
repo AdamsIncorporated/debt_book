@@ -4,7 +4,7 @@ export type Column<T> = {
   label: string;
   key: keyof T;
   align?: "right";
-  format?: "number";
+  format?: "number" | "m/dd/yyyy";
 };
 
 export function formatNumber(value: any) {

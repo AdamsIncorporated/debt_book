@@ -139,7 +139,6 @@ export function validateDebtServiceBatch(batch: DebtService[]): {
 
 export function validateDebtPricingBatch(
   batch: DebtPricing[],
-  store: DebtPricing[],
 ): { valid: boolean; errors: string[] } {
   const errors: string[] = [];
 
@@ -162,7 +161,6 @@ export function validateDebtPricingBatch(
     // 2. Numeric validation (required fields)
     // ---------------------------------------------------------
     const numericFields = [
-      "series_id",
       "amount",
       "coupon_rate",
       "yield_rate",

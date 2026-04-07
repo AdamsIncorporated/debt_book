@@ -6,7 +6,6 @@ import { DataTable } from "../Widgets/DataTable";
 import { UploadBar } from "../Widgets/UploadBar";
 import { fetchById } from "../utils/api";
 import { getSeriesPricingById } from "../Constants/Constants";
-import { validateDebtSeries } from "../utils/func";
 
 interface Props {
   seriesId: number | null;
@@ -20,11 +19,10 @@ const COLUMNS: {
   label: string;
   key: keyof DebtPricing;
   align?: "right";
-  format?: "number";
+  format?: "number" | "m/dd/yyyy";
 }[] = [
   { label: "Id", key: "id" },
-  { label: "Series Id", key: "series_id" },
-  { label: "Maturity Date", key: "maturity_date" },
+  { label: "Maturity Date", key: "maturity_date", format: "m/dd/yyyy" },
 
   // numeric columns (add format: "number")
   { label: "Amount", key: "amount", align: "right", format: "number" },
@@ -68,7 +66,7 @@ const DebtPricingUpload: React.FC<Props> = ({
     });
   }, [seriesId]);
 
-  const handleUpload = async (file: File, store: DebtPricing[]) => {
+  const handleUpload = async (file: File) => {
     const wb = new ExcelJS.Workbook();
     await wb.xlsx.load(await file.arrayBuffer());
     const ws = wb.worksheets[0];
@@ -86,7 +84,7 @@ const DebtPricingUpload: React.FC<Props> = ({
       parsed.push({
         ...entry,
         id: Number(entry.id),
-        series_id: Number(entry.series_id),
+        maturity_date: entry.maturity_date,
         amount: Number(entry.amount),
         coupon_rate: Number(entry.coupon_rate),
         yield_rate: Number(entry.yield_rate),
@@ -95,8 +93,8 @@ const DebtPricingUpload: React.FC<Props> = ({
       } as DebtPricing);
     });
 
-    // Validate against existing rows (server-loaded store)
-    const validation = validateDebtPricingBatch(parsed, store);
+    // Validate against existing rows
+    const validation = validateDebtPricingBatch(parsed);
 
     if (!validation.valid) {
       setError(validation.errors); // ❌ show validation errors
@@ -131,7 +129,7 @@ const DebtPricingUpload: React.FC<Props> = ({
       {/* Beautiful Spaced Upload Bar */}
       <div className="mt-4">
         <UploadBar
-          onUpload={(file) => handleUpload(file, rows)}
+          onUpload={(file) => handleUpload(file)}
           onDownload={handleDownload}
         />
       </div>

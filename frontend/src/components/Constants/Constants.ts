@@ -29,7 +29,7 @@ export interface DebtSeries {
 // Represents debt pricing information
 export interface DebtPricing {
   id: number | null;
-  series_id: number;
+  series_id: number | null;
   maturity_date: string; // YYYY-MM-DD
   amount: number;
   coupon_rate: number;
