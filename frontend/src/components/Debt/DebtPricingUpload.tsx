@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import ExcelJS from "exceljs";
-import { downloadExcelTemplate, validateDebtPricingBatch } from "../utils/func";
+import { downloadExcelTemplate } from "../utils/func";
+import { validateDebtPricingBatch } from "../utils/validate";
 import { DebtPricing } from "../Constants/Constants";
 import { DataTable } from "../Widgets/DataTable";
 import { UploadBar } from "../Widgets/UploadBar";

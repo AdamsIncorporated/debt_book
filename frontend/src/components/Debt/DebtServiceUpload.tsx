@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from "react";
 import ExcelJS from "exceljs";
-import { downloadExcelTemplate, validateDebtServiceBatch } from "../utils/func";
-import { DebtService } from "components/Constants/Constants";
+import { downloadExcelTemplate } from "../utils/func";
+import { DebtService } from "../Constants/Constants";
 import { DataTable } from "../Widgets/DataTable";
 import { UploadBar } from "../Widgets/UploadBar";
+import { validateDebtServiceBatch } from "../utils/validate";
 
 interface Props {
   seriesId: number | null;
@@ -99,7 +100,7 @@ const DebtServiceUpload: React.FC<Props> = ({
     });
 
     // Validate against existing store rows
-    const validation = validateDebtServiceBatch(parsed, store);
+    const validation = validateDebtServiceBatch(parsed);
 
     if (!validation.valid) {
       setError(validation.errors); // ❌ show validation errors (array)
