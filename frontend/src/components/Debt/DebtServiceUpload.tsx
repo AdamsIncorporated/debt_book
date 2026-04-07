@@ -21,7 +21,6 @@ const COLUMNS: {
   format?: "number";
 }[] = [
   { label: "Id", key: "id" },
-  { label: "Series Id", key: "series_id" },
   { label: "Payment Date", key: "payment_date" },
 
   // numeric columns (with formatting)
