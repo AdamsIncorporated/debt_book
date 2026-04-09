@@ -6,13 +6,12 @@ import { performCrudOperations, SubmitPayload } from "../utils/func";
 import { runWithToasts } from "../Widgets/toast";
 import { useNavigate } from "react-router-dom";
 import { useParams } from "react-router-dom";
-import { toast } from "react-toastify";
 
-const DebtWebForm = () => {
+const DebtMasterForm = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id?: string }>();
   const seriesId = id ? Number(id) : null;
-  console.log("DebtWebForm initialized with seriesId:", seriesId);
+  console.log("DebtMasterForm initialized with seriesId:", seriesId);
 
   const [seriesOriginal, setSeriesOriginal] = useState<any>(null);
   const [pricingOriginal, setPricingOriginal] = useState<any[]>([]);
@@ -22,20 +21,15 @@ const DebtWebForm = () => {
   const [pricingFormData, setPricingFormData] = useState<any[]>([]);
   const [serviceFormData, setServiceFormData] = useState<any[]>([]);
 
-  const [seriesValid, setSeriesValid] = useState(false);
-  const [pricingValid, setPricingValid] = useState(false);
-  const [serviceValid, setServiceValid] = useState(false);
+  const [isSeriesValid, setIsSeriesValid] = useState<boolean | null>(null);
+  const [isPricingValid, setIsPricingValid] = useState<boolean | null>(null);
+  const [isServiceValid, setIsServiceValid] = useState<boolean | null>(null);
+
+  const isFormValid = [isSeriesValid, isPricingValid, isServiceValid].every(
+    (v) => v !== false,
+  );
 
   const handleSubmit = async () => {
-    const formValid = seriesValid && pricingValid && serviceValid;
-
-    if (!formValid) {
-      toast.error(
-        "You have validation errors. Please fix them before submitting.",
-      );
-      return;
-    }
-
     const payload: SubmitPayload = {
       series: { original: seriesOriginal, current: seriesFormData },
       pricing: { original: pricingOriginal, current: pricingFormData },
@@ -86,7 +80,7 @@ const DebtWebForm = () => {
             oidSum={oidSum}
             onChange={setSeriesFormData}
             onInitialLoad={setSeriesOriginal}
-            onValidate={({ valid }) => setSeriesValid(valid)}
+            onValidate={({ valid }) => setIsSeriesValid(valid)}
           />
         </div>
 
@@ -96,7 +90,7 @@ const DebtWebForm = () => {
             seriesId={seriesId}
             onChange={setPricingFormData}
             onInitialLoad={setPricingOriginal}
-            onValidate={({ valid }) => setPricingValid(valid)}
+            onValidate={({ valid }) => setIsPricingValid(valid)}
           />
         </div>
 
@@ -106,19 +100,21 @@ const DebtWebForm = () => {
             seriesId={seriesId}
             onChange={setServiceFormData}
             onInitialLoad={setServiceOriginal}
-            onValidate={({ valid }) => setServiceValid(valid)}
+            onValidate={({ valid }) => setIsServiceValid(valid)}
           />
         </div>
       </div>
-      {/* Submit Button */}
-      <button
-        onClick={handleSubmit}
-        className="my-6 px-6 py-3 font-semibold rounded-lg shadow-md transition-all bg-gray-600 text-white hover:cursor-pointer hover:bg-gray-700 active:scale-95 w-fit"
-      >
-        💾 Submit Debt Series
-      </button>
+      {isFormValid && (
+        <button
+          onClick={handleSubmit}
+          className="my-6 px-6 py-3 font-semibold rounded-lg shadow-md transition-all
+               bg-gray-600 text-white hover:bg-gray-700 active:scale-95 w-fit"
+        >
+          💾 Submit Debt Series
+        </button>
+      )}
     </div>
   );
 };
 
-export default DebtWebForm;
+export default DebtMasterForm;
