@@ -11,6 +11,7 @@ import { DataTable } from "../Widgets/DataTable";
 import { UploadBar } from "../Widgets/UploadBar";
 import { fetchById } from "../utils/api";
 import { getSeriesPricingById } from "../Constants/Constants";
+import { SkeletonTable } from "../Widgets/SkeletonTable";
 
 interface Props {
   seriesId: number | null;
@@ -58,6 +59,8 @@ const DebtPricingUpload: React.FC<Props> = ({
 
   useEffect(() => {
     if (seriesId === null) return;
+
+    console.log("Fetching debt pricing for seriesId:", seriesId); // ✅ log fetch trigger
     fetchById<DebtPricing[]>({
       endpoint: getSeriesPricingById(seriesId),
       entityName: "Debt Series Pricing",
@@ -152,7 +155,9 @@ const DebtPricingUpload: React.FC<Props> = ({
       )}
 
       {/* Table With Nice Top Spacing */}
-      {rows.length > 0 && (
+      {rows.length === 0 ? (
+        <SkeletonTable columnCount={COLUMNS.length} rowCount={6} />
+      ) : (
         <div className="mt-6">
           <DataTable columns={COLUMNS} rows={rows} />
         </div>

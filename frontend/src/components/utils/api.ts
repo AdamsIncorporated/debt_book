@@ -29,7 +29,7 @@ export async function fetchById<T>({
       throw new Error(`${entityName} response format invalid`);
     }
 
-    const mapped = mapResponse(json[0]);
+    const mapped = mapResponse(json);
     console.info("✅ Parsed result:", mapped);
 
     return mapped;
