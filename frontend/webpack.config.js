@@ -8,6 +8,7 @@ module.exports = {
   entry: "./src/index.tsx",
   devtool: "source-map",
   devServer: {
+    https: true,
     static: {
       directory: path.join(__dirname, "src", "public"),
     },
