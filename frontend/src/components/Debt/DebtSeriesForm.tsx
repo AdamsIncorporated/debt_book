@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { DebtSeries } from "../Constants/Constants";
 import { fetchById } from "../utils/api";
-import { validateDebtSeries } from "components/utils/validate";
+import { validateDebtSeries } from "../utils/validate";
 import { formatNumber } from "../utils/func";
 
 type Props = {
@@ -19,6 +19,7 @@ const DebtSeriesForm: React.FC<Props> = ({
   oidSum,
   onChange,
   onInitialLoad,
+  onValidate,
 }) => {
   const [form, setForm] = useState({
     id: 0,
@@ -30,6 +31,7 @@ const DebtSeriesForm: React.FC<Props> = ({
   });
 
   const [loaded, setLoaded] = useState(false);
+  const [error, setError] = useState<string[] | null>(null);
 
   useEffect(() => {
     if (seriesId === null) {
@@ -42,14 +44,18 @@ const DebtSeriesForm: React.FC<Props> = ({
     fetchById({
       endpoint: `/api/get/get_debt_series_by_id/${seriesId}`,
       entityName: "Debt Series",
-      mapResponse: (raw: any) => ({
-        id: raw.id,
-        series_name: raw.series_name ?? "",
-        is_tax_exempt: raw.is_tax_exempt ?? 0,
-        par_amount: raw.par_amount ?? 0,
-        premium: raw.premium ?? 0,
-        cost_of_issuance: raw.cost_of_issuance ?? 0,
-      }),
+      mapResponse: (raw: any) => {
+        const series = Array.isArray(raw) ? raw[0] : raw;
+
+        return {
+          id: series?.id,
+          series_name: series?.series_name ?? "",
+          is_tax_exempt: series?.is_tax_exempt ?? 0,
+          par_amount: series?.par_amount ?? 0,
+          premium: series?.premium ?? 0,
+          cost_of_issuance: series?.cost_of_issuance ?? 0,
+        };
+      },
     })
       .then((data: any) => {
         setForm({
@@ -68,17 +74,29 @@ const DebtSeriesForm: React.FC<Props> = ({
 
   const handleChange = (updated: typeof form) => {
     setForm(updated);
+    const parsed: DebtSeries = {
+      id: updated.id || null,
+      series_name: updated.seriesName,
+      is_tax_exempt: Number(updated.isTaxExempt),
+      par_amount: Number(updated.parAmount),
+      premium: Number(updated.premium || 0),
+      cost_of_issuance: Number(updated.costOfIssuance || 0),
+      created_at: new Date().toISOString(),
+    };
 
-    if (updated.seriesName && Number(updated.parAmount) > 0) {
-      onChange({
-        id: updated.id || null,
-        series_name: updated.seriesName,
-        is_tax_exempt: Number(updated.isTaxExempt),
-        par_amount: Number(updated.parAmount),
-        premium: Number(updated.premium || 0),
-        cost_of_issuance: Number(updated.costOfIssuance || 0),
-      });
+    const validation = validateDebtSeries(parsed);
+
+    // Validate against existing rows
+    if (!validation.valid) {
+      onValidate({ valid: false, errors: validation.errors }); // ❌ notify parent of validation failure
+      return;
+    } else {
+      console.log("Validation passed, parsed data:", parsed); // ✅ log parsed data
+      onValidate({ valid: true, errors: [] }); // ✅ notify parent of successful validation
     }
+
+    setRows(parsed);
+    onChange(parsed);
   };
 
   /* ✅ Skeleton loader preserved */
