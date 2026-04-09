@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import DebtSeriesForm from "./DebtSeriesForm";
 import DebtPricingUpload from "./DebtPricingUpload";
 import DebtServiceUpload from "./DebtServiceUpload";
@@ -45,6 +45,20 @@ const DebtWebForm = () => {
     await runWithToasts(() => performCrudOperations(payload));
   };
 
+  const parSum = useMemo(() => {
+    return pricingFormData.reduce(
+      (sum, row) => sum + Number(row.amount || 0),
+      0,
+    );
+  }, [pricingFormData]);
+
+  const oidSum = useMemo(() => {
+    return serviceFormData.reduce(
+      (sum, row) => sum + Number(row.premium_discount || 0),
+      0,
+    );
+  }, [serviceFormData]);
+
   return (
     <div className="m-6">
       {/* Back (Refresh) Button */}
@@ -68,6 +82,8 @@ const DebtWebForm = () => {
         <div className="mx-auto w-1/2">
           <DebtSeriesForm
             seriesId={seriesId}
+            parSum={parSum}
+            oidSum={oidSum}
             onChange={setSeriesFormData}
             onInitialLoad={setSeriesOriginal}
             onValidate={({ valid }) => setSeriesValid(valid)}

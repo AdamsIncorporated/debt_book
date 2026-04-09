@@ -2,9 +2,12 @@ import React, { useState, useEffect } from "react";
 import { DebtSeries } from "../Constants/Constants";
 import { fetchById } from "../utils/api";
 import { validateDebtSeries } from "components/utils/validate";
+import { formatNumber } from "../utils/func";
 
 type Props = {
   seriesId: number | null;
+  parSum: number | null;
+  oidSum: number | null;
   onChange: (v: DebtSeries) => void;
   onInitialLoad: (v: any) => void;
   onValidate(results: { valid: boolean; errors: string[] }): void;
@@ -12,6 +15,8 @@ type Props = {
 
 const DebtSeriesForm: React.FC<Props> = ({
   seriesId,
+  parSum,
+  oidSum,
   onChange,
   onInitialLoad,
 }) => {
@@ -19,8 +24,8 @@ const DebtSeriesForm: React.FC<Props> = ({
     id: 0,
     seriesName: "",
     isTaxExempt: false,
-    parAmount: "",
-    premium: "",
+    parAmount: parSum != null ? String(parSum) : "",
+    premium: oidSum != null ? String(oidSum) : "",
     costOfIssuance: "",
   });
 
@@ -95,40 +100,36 @@ const DebtSeriesForm: React.FC<Props> = ({
 
   return (
     <div className="space-y-4 p-6 bg-white rounded-2xl shadow-lg">
-      <h2 className="text-xl font-semibold text-gray-800">Debt Series Form</h2>
-
-      <label>Series Name</label>
+      <label className="text-sm font-medium text-gray-800">Series Name</label>
       <input
         type="text"
         value={form.seriesName}
         onChange={(e) => handleChange({ ...form, seriesName: e.target.value })}
-        className="w-full px-4 py-2 border rounded-lg"
+        className="w-full px-4 py-2 rounded-lg shadow-sm border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
       />
 
-      <label>Par Amount</label>
-      <input
-        type="number"
-        value={form.parAmount}
-        onChange={(e) => handleChange({ ...form, parAmount: e.target.value })}
-        className="w-full px-4 py-2 border rounded-lg"
-      />
+      <div className="space-y-2">
+        <label className="text-sm font-medium text-gray-800">Par Amount</label>
+        <div className="w-full px-4 py-2 rounded-lg shadow-sm bg-gray-50 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500">
+          {formatNumber(form.parAmount)}
+        </div>
 
-      <label>Premium</label>
-      <input
-        type="number"
-        value={form.premium}
-        onChange={(e) => handleChange({ ...form, premium: e.target.value })}
-        className="w-full px-4 py-2 border rounded-lg"
-      />
+        <label className="text-sm font-medium text-gray-800">Premium</label>
+        <div className="w-full px-4 py-2 rounded-lg shadow-sm bg-gray-50 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500">
+          {formatNumber(form.premium)}
+        </div>
+      </div>
 
-      <label>Cost of Issuance</label>
+      <label className="text-sm font-medium text-gray-800">
+        Cost of Issuance
+      </label>
       <input
         type="number"
         value={form.costOfIssuance}
         onChange={(e) =>
           handleChange({ ...form, costOfIssuance: e.target.value })
         }
-        className="w-full px-4 py-2 border rounded-lg"
+        className="w-full px-4 py-2 rounded-lg shadow-sm border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
       />
 
       <label className="flex items-center gap-2">

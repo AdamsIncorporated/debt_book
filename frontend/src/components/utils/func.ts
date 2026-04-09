@@ -7,6 +7,22 @@ import {
 } from "../Constants/Constants";
 import ExcelJS from "exceljs";
 
+export function formatNumber(value: any) {
+  if (value === null || value === undefined || value === "") return "";
+  const num = Number(value);
+  if (isNaN(num)) return value;
+  return num.toLocaleString("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+}
+
+export function excelNumberToJSONNumber(value: unknown): number | null {
+  if (value === null || value === undefined || value === "") return null;
+  const num = Number(value);
+  return isNaN(num) ? null : num;
+}
+
 export function excelDateToJSONString(value: unknown): string {
   let date: Date;
 
@@ -250,14 +266,4 @@ async function del(url: string, body?: any) {
     console.error("DELETE ERROR →", err);
     throw err;
   }
-}
-
-export function formatNumber(value: any) {
-  if (value === null || value === undefined || value === "") return "";
-  const num = Number(value);
-  if (isNaN(num)) return value;
-  return num.toLocaleString("en-US", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
 }

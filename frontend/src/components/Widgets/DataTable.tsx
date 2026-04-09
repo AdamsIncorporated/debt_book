@@ -1,4 +1,5 @@
 import React from "react";
+import { formatNumber } from "../utils/func";
 
 export type Column<T> = {
   label: string;
@@ -6,16 +7,6 @@ export type Column<T> = {
   align?: "right";
   format?: "number" | "m/dd/yyyy";
 };
-
-export function formatNumber(value: any) {
-  if (value === null || value === undefined || value === "") return "";
-  const num = Number(value);
-  if (isNaN(num)) return value;
-  return num.toLocaleString("en-US", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
-}
 
 type DataTableProps<T> = {
   columns: Column<T>[];
