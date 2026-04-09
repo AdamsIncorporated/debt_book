@@ -3,6 +3,8 @@ import { DebtSeries } from "../Constants/Constants";
 import { fetchById } from "../utils/api";
 import { validateDebtSeries } from "../utils/validate";
 import { formatNumber } from "../utils/func";
+import { ReadOnlyField } from "../Widgets/ReadOnlyField";
+import DebtSeriesFormSkeleton from "../Widgets/DebtSeriesFormSkeleton";
 
 type Props = {
   seriesId: number | null;
@@ -13,6 +15,25 @@ type Props = {
   onValidate(results: { valid: boolean; errors: string[] }): void;
 };
 
+type FormState = {
+  id: number;
+  seriesName: string;
+  isTaxExempt: boolean;
+  parAmount: string;
+  premium: string;
+  costOfIssuance: string;
+};
+
+const parseDebtSeries = (form: FormState): DebtSeries => ({
+  id: form.id || null,
+  series_name: form.seriesName,
+  is_tax_exempt: Number(form.isTaxExempt),
+  par_amount: Number(form.parAmount || 0),
+  premium: Number(form.premium || 0),
+  cost_of_issuance: Number(form.costOfIssuance || 0),
+  created_at: new Date().toISOString(),
+});
+
 const DebtSeriesForm: React.FC<Props> = ({
   seriesId,
   parSum,
@@ -21,7 +42,7 @@ const DebtSeriesForm: React.FC<Props> = ({
   onInitialLoad,
   onValidate,
 }) => {
-  const [form, setForm] = useState({
+  const [form, setForm] = useState<FormState>({
     id: 0,
     seriesName: "",
     isTaxExempt: false,
@@ -31,10 +52,10 @@ const DebtSeriesForm: React.FC<Props> = ({
   });
 
   const [loaded, setLoaded] = useState(false);
-  const [error, setError] = useState<string[] | null>(null);
 
+  // ✅ Load existing series
   useEffect(() => {
-    if (seriesId === null) {
+    if (seriesId == null) {
       setLoaded(true);
       return;
     }
@@ -45,26 +66,25 @@ const DebtSeriesForm: React.FC<Props> = ({
       endpoint: `/api/get/get_debt_series_by_id/${seriesId}`,
       entityName: "Debt Series",
       mapResponse: (raw: any) => {
-        const series = Array.isArray(raw) ? raw[0] : raw;
-
+        const s = Array.isArray(raw) ? raw[0] : raw;
         return {
-          id: series?.id,
-          series_name: series?.series_name ?? "",
-          is_tax_exempt: series?.is_tax_exempt ?? 0,
-          par_amount: series?.par_amount ?? 0,
-          premium: series?.premium ?? 0,
-          cost_of_issuance: series?.cost_of_issuance ?? 0,
+          id: s?.id ?? 0,
+          series_name: s?.series_name ?? "",
+          is_tax_exempt: s?.is_tax_exempt ?? 0,
+          par_amount: s?.par_amount ?? 0,
+          premium: s?.premium ?? 0,
+          cost_of_issuance: s?.cost_of_issuance ?? 0,
         };
       },
     })
-      .then((data: any) => {
+      .then((data) => {
         setForm({
-          id: data.id ?? 0,
-          seriesName: data.series_name ?? "",
+          id: data.id,
+          seriesName: data.series_name,
           isTaxExempt: data.is_tax_exempt === 1,
-          parAmount: data.par_amount?.toString() ?? "",
-          premium: data.premium?.toString() ?? "",
-          costOfIssuance: data.cost_of_issuance?.toString() ?? "",
+          parAmount: String(data.par_amount ?? ""),
+          premium: String(data.premium ?? ""),
+          costOfIssuance: String(data.cost_of_issuance ?? ""),
         });
 
         onInitialLoad(data);
@@ -72,71 +92,37 @@ const DebtSeriesForm: React.FC<Props> = ({
       .finally(() => setLoaded(true));
   }, [seriesId, onInitialLoad]);
 
-  const handleChange = (updated: typeof form) => {
-    setForm(updated);
-    const parsed: DebtSeries = {
-      id: updated.id || null,
-      series_name: updated.seriesName,
-      is_tax_exempt: Number(updated.isTaxExempt),
-      par_amount: Number(updated.parAmount),
-      premium: Number(updated.premium || 0),
-      cost_of_issuance: Number(updated.costOfIssuance || 0),
-      created_at: new Date().toISOString(),
-    };
+  // ✅ Unified change handler
+  const updateForm = (next: FormState) => {
+    setForm(next);
 
+    const parsed = parseDebtSeries(next);
     const validation = validateDebtSeries(parsed);
 
-    // Validate against existing rows
     if (!validation.valid) {
-      onValidate({ valid: false, errors: validation.errors }); // ❌ notify parent of validation failure
+      onValidate({ valid: false, errors: validation.errors });
       return;
-    } else {
-      console.log("Validation passed, parsed data:", parsed); // ✅ log parsed data
-      onValidate({ valid: true, errors: [] }); // ✅ notify parent of successful validation
     }
 
-    setRows(parsed);
+    onValidate({ valid: true, errors: [] });
     onChange(parsed);
   };
 
-  /* ✅ Skeleton loader preserved */
-  if (!loaded) {
-    return (
-      <div className="space-y-4 max-w-md p-6 bg-white rounded-2xl shadow-lg animate-pulse">
-        <div className="h-6 w-40 bg-gray-200 rounded-md" />
-        <div className="h-10 w-full bg-gray-200 rounded-lg" />
-        <div className="h-10 w-full bg-gray-200 rounded-lg" />
-        <div className="h-10 w-full bg-gray-200 rounded-lg" />
-        <div className="h-10 w-full bg-gray-200 rounded-lg" />
-        <div className="flex items-center gap-2">
-          <div className="h-4 w-4 bg-gray-200 rounded" />
-          <div className="h-4 w-20 bg-gray-200 rounded" />
-        </div>
-      </div>
-    );
-  }
+  if (!loaded) return <DebtSeriesFormSkeleton />;
 
   return (
     <div className="space-y-4 p-6 bg-white rounded-2xl shadow-lg">
       <label className="text-sm font-medium text-gray-800">Series Name</label>
       <input
-        type="text"
         value={form.seriesName}
-        onChange={(e) => handleChange({ ...form, seriesName: e.target.value })}
-        className="w-full px-4 py-2 rounded-lg shadow-sm border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        onChange={(e) => updateForm({ ...form, seriesName: e.target.value })}
+        className="w-full px-4 py-2 rounded-lg shadow-sm border border-gray-300
+             focus:outline-none focus:ring-2 focus:ring-blue-500"
       />
 
-      <div className="space-y-2">
-        <label className="text-sm font-medium text-gray-800">Par Amount</label>
-        <div className="w-full px-4 py-2 rounded-lg shadow-sm bg-gray-50 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500">
-          {formatNumber(form.parAmount)}
-        </div>
-
-        <label className="text-sm font-medium text-gray-800">Premium</label>
-        <div className="w-full px-4 py-2 rounded-lg shadow-sm bg-gray-50 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500">
-          {formatNumber(form.premium)}
-        </div>
-      </div>
+      {/* ✅ Accrual‑driven display only */}
+      <ReadOnlyField label="Par Amount" value={formatNumber(form.parAmount)} />
+      <ReadOnlyField label="Premium" value={formatNumber(form.premium)} />
 
       <label className="text-sm font-medium text-gray-800">
         Cost of Issuance
@@ -145,17 +131,19 @@ const DebtSeriesForm: React.FC<Props> = ({
         type="number"
         value={form.costOfIssuance}
         onChange={(e) =>
-          handleChange({ ...form, costOfIssuance: e.target.value })
+          updateForm({ ...form, costOfIssuance: e.target.value })
         }
-        className="w-full px-4 py-2 rounded-lg shadow-sm border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        className="w-full px-4 py-2 rounded-lg shadow-sm border border-gray-300
+             focus:outline-none focus:ring-2 focus:ring-blue-500"
       />
 
-      <label className="flex items-center gap-2">
+      <label className="flex items-center gap-2 text-sm font-medium text-gray-800">
         <input
           type="checkbox"
+          className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
           checked={form.isTaxExempt}
           onChange={(e) =>
-            handleChange({ ...form, isTaxExempt: e.target.checked })
+            updateForm({ ...form, isTaxExempt: e.target.checked })
           }
         />
         Tax Exempt
