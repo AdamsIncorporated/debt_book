@@ -39,10 +39,16 @@ const DebtServiceUpload: React.FC<Props> = ({
 }) => {
   const [rows, setRows] = useState<DebtService[]>([]);
   const [error, setError] = useState<string[] | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   // Load existing server-side rows
   useEffect(() => {
-    if (seriesId === null) return;
+    if (seriesId === null) {
+      setIsLoading(false);
+      return;
+    }
+
+    setIsLoading(true);
     fetchById<DebtService[]>({
       endpoint: getSeriesDebtServiceById(seriesId),
       entityName: "Debt Series Service Schedule",
@@ -135,9 +141,13 @@ const DebtServiceUpload: React.FC<Props> = ({
         </div>
       )}
 
-      {/* Table With Nice Top Spacing */}
-      {rows.length === 0 ? (
+      {isLoading ? (
         <SkeletonTable columnCount={COLUMNS.length} rowCount={6} />
+      ) : rows.length === 0 ? (
+        <div className="mt-6 p-4 rounded-xl bg-yellow-100 border border-yellow-300 text-yellow-700 shadow-sm">
+          No data uploaded yet. Please use the upload bar above to add debt
+          service entries.
+        </div>
       ) : (
         <div className="mt-6">
           <DataTable columns={COLUMNS} rows={rows} />
