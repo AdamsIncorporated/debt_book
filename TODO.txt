@@ -1,7 +1,0 @@
-1. Interest Field add on Debt Series
-2. Remove all display ids
-3. How much is due in interest this year, flexible chart display
-4. Interest accrued as of today
-5. Whats due in this fiscal year
-6. Remove all audit fields
-7. add a isRefunded Field

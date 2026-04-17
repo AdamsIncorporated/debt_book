@@ -9,7 +9,7 @@ import DebtSeriesFormSkeleton from "../Widgets/DebtSeriesFormSkeleton";
 type Props = {
   seriesId: number | null;
   parSum: number | null;
-  oidSum: number | null;
+  premiumDiscountSum: number | null;
   onChange: (v: DebtSeries) => void;
   onInitialLoad: (v: any) => void;
   onValidate(results: { valid: boolean; errors: string[] }): void;
@@ -20,7 +20,7 @@ type FormState = {
   seriesName: string;
   isTaxExempt: boolean;
   parAmount: string;
-  premium: string;
+  premiumDiscount: string;
   costOfIssuance: string;
 };
 
@@ -29,7 +29,7 @@ const parseDebtSeries = (form: FormState): DebtSeries => ({
   series_name: form.seriesName,
   is_tax_exempt: Number(form.isTaxExempt),
   par_amount: Number(form.parAmount || 0),
-  premium: Number(form.premium || 0),
+  premium_discount: Number(form.premiumDiscount || 0),
   cost_of_issuance: Number(form.costOfIssuance || 0),
   created_at: new Date().toISOString(),
 });
@@ -37,7 +37,7 @@ const parseDebtSeries = (form: FormState): DebtSeries => ({
 const DebtSeriesForm: React.FC<Props> = ({
   seriesId,
   parSum,
-  oidSum,
+  premiumDiscountSum,
   onChange,
   onInitialLoad,
   onValidate,
@@ -47,7 +47,8 @@ const DebtSeriesForm: React.FC<Props> = ({
     seriesName: "",
     isTaxExempt: false,
     parAmount: parSum != null ? String(parSum) : "",
-    premium: oidSum != null ? String(oidSum) : "",
+    premiumDiscount:
+      premiumDiscountSum != null ? String(premiumDiscountSum) : "",
     costOfIssuance: "",
   });
 
@@ -72,7 +73,7 @@ const DebtSeriesForm: React.FC<Props> = ({
           series_name: s?.series_name ?? "",
           is_tax_exempt: s?.is_tax_exempt ?? 0,
           par_amount: s?.par_amount ?? 0,
-          premium: s?.premium ?? 0,
+          premium_discount: s?.premium_discount ?? 0,
           cost_of_issuance: s?.cost_of_issuance ?? 0,
         };
       },
@@ -83,7 +84,7 @@ const DebtSeriesForm: React.FC<Props> = ({
           seriesName: data.series_name,
           isTaxExempt: data.is_tax_exempt === 1,
           parAmount: String(data.par_amount ?? ""),
-          premium: String(data.premium ?? ""),
+          premiumDiscount: String(data.premium_discount ?? ""),
           costOfIssuance: String(data.cost_of_issuance ?? ""),
         });
 
@@ -91,6 +92,20 @@ const DebtSeriesForm: React.FC<Props> = ({
       })
       .finally(() => setLoaded(true));
   }, [seriesId, onInitialLoad]);
+
+  // ✅ KEEP parAmount & premium in sync with uploads
+  useEffect(() => {
+    setForm((prev) => {
+      if (!prev) return prev;
+
+      return {
+        ...prev,
+        parAmount: parSum != null ? String(parSum) : "",
+        premiumDiscount:
+          premiumDiscountSum != null ? String(premiumDiscountSum) : "",
+      };
+    });
+  }, [parSum, premiumDiscountSum]);
 
   // ✅ Unified change handler
   const updateForm = (next: FormState) => {
@@ -122,7 +137,10 @@ const DebtSeriesForm: React.FC<Props> = ({
 
       {/* ✅ Accrual‑driven display only */}
       <ReadOnlyField label="Par Amount" value={formatNumber(form.parAmount)} />
-      <ReadOnlyField label="Premium" value={formatNumber(form.premium)} />
+      <ReadOnlyField
+        label="Premium Discount"
+        value={formatNumber(form.premiumDiscount)}
+      />
 
       <label className="text-sm font-medium text-gray-800">
         Cost of Issuance

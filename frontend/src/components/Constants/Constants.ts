@@ -1,4 +1,5 @@
 export const GET_ALL_SERIES = "/api/get/get_all_series";
+export const GET_SERIES_ID_BY_NAME = "/api/get/get_series_id_by_name";
 export const GET_SERIES_BY_ID = "/api/get/get_debt_series_by_id/";
 export const getSeriesPricingById = (id: number) =>
   `/api/get/get_debt_series_pricing_by_id/${id}`;
@@ -23,7 +24,7 @@ export interface DebtSeries {
   series_name: string;
   is_tax_exempt?: number;
   par_amount: number;
-  premium?: number | null;
+  premium_discount?: number | null;
   cost_of_issuance?: number | null;
   created_at?: string | null;
 }

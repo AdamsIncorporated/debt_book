@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import ExcelJS from "exceljs";
-import { downloadExcelTemplate, excelDateToJSONString } from "../utils/func";
+import { downloadExcelTemplate, excelDateToJSONString, excelNumberToJSONNumber } from "../utils/func";
 import { DebtService } from "../Constants/Constants";
 import { DataTable } from "../Widgets/DataTable";
 import { UploadBar } from "../Widgets/UploadBar";
@@ -58,6 +58,7 @@ const DebtServiceUpload: React.FC<Props> = ({
         setRows(data);
         onInitialLoad(data);
         onChange(data);
+        setIsLoading(false);
       }
     });
   }, [seriesId]);
@@ -85,8 +86,8 @@ const DebtServiceUpload: React.FC<Props> = ({
       parsed.push({
         id: entry.id,
         payment_date: excelDateToJSONString(entry.payment_date),
-        principal: Number(entry.principal),
-        interest: Number(entry.interest),
+        principal: excelNumberToJSONNumber(entry.principal),
+        interest: excelNumberToJSONNumber(entry.interest),
       } as DebtService);
     });
 
@@ -94,8 +95,12 @@ const DebtServiceUpload: React.FC<Props> = ({
     const validation = validateDebtServiceBatch(parsed);
 
     if (!validation.valid) {
-      setError(validation.errors); // ❌ show validation errors (array)
+      setError(validation.errors); // ❌ show validation errors
+      onValidate({ valid: false, errors: validation.errors }); // ❌ notify parent of validation failure
       return;
+    } else {
+      console.log("Validation passed, parsed data:", parsed); // ✅ log parsed data
+      onValidate({ valid: true, errors: [] }); // ✅ notify parent of successful validation
     }
 
     // SUCCESS

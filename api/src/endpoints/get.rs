@@ -8,6 +8,59 @@ use anyhow::{Context, Ok, Result};
 use odbc_api::{ConnectionOptions, Cursor, Nullable};
 use tokio::task;
 
+#[get("/get_series_id_by_name")]
+pub async fn get_series_id_by_name(
+    state: web::Data<AppState>,
+    query: web::Query<std::collections::HashMap<String, String>>,
+) -> impl Responder {
+    const COLUMN_ID: u16 = 1;
+    const SERIES_NAME_CAPACITY: usize = 100;
+    const SQL_COMMAND: &str = "SELECT ID FROM TBL_DEBT_SERIES WHERE SERIES_NAME = ?";
+
+    let result: anyhow::Result<Option<i64>> = task::spawn_blocking({
+        let state = state.clone();
+        let series_name = query
+            .get("series_name")
+            .cloned()
+            .unwrap_or_else(|| "".to_string());
+        move || {
+            let conn = state
+                .env
+                .connect_with_connection_string(
+                    &state.conn_str,
+                    odbc_api::ConnectionOptions::default(),
+                )
+                .context("ODBC connect failed")?;
+
+            if let Some(mut cursor) = conn
+                .execute(SQL_COMMAND, (&series_name,), None)
+                .context("Failed to execute SQL query")?
+            {
+                if let Some(mut row) = cursor.next_row()? {
+                    let mut id_buf = 0i64;
+                    row.get_data(COLUMN_ID, &mut id_buf)?;
+                    Ok(Some(id_buf))
+                } else {
+                    Ok(None) // No matching series found
+                }
+            } else {
+                Ok(None) // Query execution did not return a cursor
+            }
+        }
+    })
+    .await
+    .unwrap_or_else(|e| Err(anyhow::anyhow!(e)));
+
+    match result {
+        std::result::Result::Ok(Some(id)) => HttpResponse::Ok().json(id),
+        std::result::Result::Ok(None) => HttpResponse::NotFound().body("Series not found"),
+        Err(e) => {
+            log::error!("Error fetching series ID: {:?}", e);
+            HttpResponse::InternalServerError().body("Failed to fetch series ID")
+        }
+    }
+}
+
 #[get("/get_all_series")]
 pub async fn get_all_debt_series(state: web::Data<AppState>) -> impl Responder {
     const COLUMN_ID: u16 = 1;

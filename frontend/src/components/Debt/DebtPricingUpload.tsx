@@ -75,6 +75,7 @@ const DebtPricingUpload: React.FC<Props> = ({
         setRows(data);
         onInitialLoad(data);
         onChange(data);
+        setIsLoading(false);
       }
     });
   }, [seriesId]);
