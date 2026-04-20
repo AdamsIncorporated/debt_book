@@ -3,8 +3,11 @@ use crate::structs::get::DebtPricing;
 use crate::structs::get::DebtSeries;
 use crate::structs::get::DebtService;
 use crate::structs::get::SeriesNameList;
+use actix_web::body::MessageBody;
 use actix_web::{HttpResponse, Responder, get, web};
 use anyhow::{Context, Ok, Result};
+use odbc_api::buffers::Indicator;
+use odbc_api::parameter::VarChar;
 use odbc_api::{ConnectionOptions, Cursor, Nullable};
 use tokio::task;
 
@@ -19,10 +22,20 @@ pub async fn get_series_id_by_name(
 
     let result: anyhow::Result<Option<i64>> = task::spawn_blocking({
         let state = state.clone();
-        let series_name = query
+
+        let mut buffer = [0u8, SERIES_NAME_CAPACITY.try_into().unwrap()];
+
+        // Convert string to bytes
+        let series_name_bytes = query
             .get("series_name")
-            .cloned()
-            .unwrap_or_else(|| "".to_string());
+            .map(|s| s.as_bytes())
+            .unwrap_or_else(|| b"");
+
+        // Truncate if bytes are too long
+        let len = series_name_bytes.len().min(SERIES_NAME_CAPACITY);
+        buffer[..len].copy_from_slice(&series_name_bytes[..len]);
+        let param = VarChar::from_buffer(buffer, Indicator::Length(len));
+
         move || {
             let conn = state
                 .env
@@ -33,7 +46,7 @@ pub async fn get_series_id_by_name(
                 .context("ODBC connect failed")?;
 
             if let Some(mut cursor) = conn
-                .execute(SQL_COMMAND, (&series_name,), None)
+                .execute(SQL_COMMAND, (&param,), None)
                 .context("Failed to execute SQL query")?
             {
                 if let Some(mut row) = cursor.next_row()? {
