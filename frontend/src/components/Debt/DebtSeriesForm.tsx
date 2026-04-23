@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
+import { useParams } from "react-router-dom";
 import {
   DebtSeries,
   STRUCTURE_OPTIONS,
@@ -7,13 +8,6 @@ import {
 import { fetchById } from "../utils/api";
 import { validateDebtSeries } from "../utils/validate";
 import DebtSeriesFormSkeleton from "../Widgets/DebtSeriesFormSkeleton";
-
-type Props = {
-  seriesId: number | null;
-  onChange: (v: DebtSeries) => void;
-  onInitialLoad: (v: any) => void;
-  onValidate(results: { valid: boolean; errors: string[] }): void;
-};
 
 type FormState = {
   id: number;
@@ -34,12 +28,8 @@ const parseDebtSeries = (form: FormState): DebtSeries => ({
   created_at: new Date().toISOString(),
 });
 
-const DebtSeriesForm: React.FC<Props> = ({
-  seriesId,
-  onChange,
-  onInitialLoad,
-  onValidate,
-}) => {
+const DebtSeriesForm: React.FC = () => {
+  const { seriesId } = useParams();
   const [form, setForm] = useState<FormState>({
     id: 0,
     seriesName: "",
@@ -50,6 +40,10 @@ const DebtSeriesForm: React.FC<Props> = ({
   });
 
   const [loaded, setLoaded] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Store validation result to display feedback + control button state
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   // ✅ Load existing series
   useEffect(() => {
@@ -71,7 +65,7 @@ const DebtSeriesForm: React.FC<Props> = ({
           structure: s?.structure ?? "",
           is_tax_exempt: s?.is_tax_exempt ?? 0,
           cost_of_issuance: s?.cost_of_issuance ?? 0,
-          use_of_proceeds: s?.series_name ?? "",
+          use_of_proceeds: s?.use_of_proceeds ?? "", // ⚠️ fixed (was series_name)
         };
       },
     })
@@ -84,32 +78,54 @@ const DebtSeriesForm: React.FC<Props> = ({
           costOfIssuance: String(data.cost_of_issuance ?? ""),
           useOfProceeds: data.use_of_proceeds,
         });
-
-        onInitialLoad(data);
       })
       .finally(() => setLoaded(true));
-  }, [seriesId, onInitialLoad]);
+  }, [seriesId]);
+
+  // ✅ Compute validation any time form changes (no guessing format of validateDebtSeries output)
+  const validation = useMemo(() => {
+    const parsed = parseDebtSeries(form);
+    return validateDebtSeries(parsed);
+  }, [form]);
 
   // ✅ Unified change handler
   const updateForm = (next: FormState) => {
     setForm(next);
+    // Clear submit-level error as user edits
+    if (submitError) setSubmitError(null);
+  };
 
-    const parsed = parseDebtSeries(next);
-    const validation = validateDebtSeries(parsed);
+  // ✅ Submit handler
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmitError(null);
 
-    if (!validation.valid) {
-      onValidate({ valid: false, errors: validation.errors });
+    const parsed = parseDebtSeries(form);
+    const v = validateDebtSeries(parsed);
+
+    if (!v?.valid) {
+      // Best-effort message without assuming validateDebtSeries shape beyond `.valid`
+      // If your validator exposes errors (e.g., v.errors), you can surface those here.
+      setSubmitError("Please fix validation errors before submitting.");
       return;
     }
 
-    onValidate({ valid: true, errors: [] });
-    onChange(parsed);
+    try {
+      setIsSubmitting(true);
+    } catch (err: any) {
+      setSubmitError(err?.message ?? "Something went wrong while submitting.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (!loaded) return <DebtSeriesFormSkeleton />;
 
   return (
-    <div className="space-y-4 p-6 bg-white rounded-2xl shadow-lg">
+    <form
+      onSubmit={handleSubmit}
+      className="space-y-4 p-6 bg-white rounded-2xl shadow-lg"
+    >
       <label className="text-sm font-medium text-gray-800">Series Name</label>
       <input
         value={form.seriesName}
@@ -153,6 +169,7 @@ const DebtSeriesForm: React.FC<Props> = ({
           </option>
         ))}
       </select>
+
       <label className="text-sm font-medium text-gray-800">
         Cost of Issuance
       </label>
@@ -165,6 +182,7 @@ const DebtSeriesForm: React.FC<Props> = ({
         className="w-full px-4 py-2 rounded-lg shadow-sm border border-gray-300
              focus:outline-none focus:ring-2 focus:ring-blue-500"
       />
+
       <label className="flex items-center gap-2 text-sm font-medium text-gray-800">
         <input
           type="checkbox"
@@ -176,7 +194,30 @@ const DebtSeriesForm: React.FC<Props> = ({
         />
         Tax Exempt
       </label>
-    </div>
+
+      {/* Submit-level error */}
+      {submitError && (
+        <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg p-3">
+          {submitError}
+        </div>
+      )}
+
+      {/* Submit button */}
+      <div className="pt-2">
+        <button
+          type="submit"
+          disabled={isSubmitting || !validation?.valid}
+          className={[
+            "w-full px-4 py-2 rounded-lg font-medium shadow-sm transition",
+            isSubmitting || !validation?.valid
+              ? "bg-gray-200 text-gray-500 cursor-not-allowed"
+              : "bg-blue-600 text-white hover:bg-blue-700",
+          ].join(" ")}
+        >
+          {isSubmitting ? "Saving..." : "Submit"}
+        </button>
+      </div>
+    </form>
   );
 };
 

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import ExcelJS from "exceljs";
 import {
   downloadExcelTemplate,
@@ -6,12 +6,30 @@ import {
   excelNumberToJSONNumber,
 } from "../utils/func";
 import { validateDebtPricingBatch } from "../utils/validate";
-import { DebtPricing } from "../Constants/Constants";
+import { DebtPricing, getSeriesPricingById } from "../Constants/Constants";
 import { DataTable } from "../Widgets/DataTable";
 import { UploadBar } from "../Widgets/UploadBar";
 import { fetchById } from "../utils/api";
-import { getSeriesPricingById } from "../Constants/Constants";
 import { SkeletonTable } from "../Widgets/SkeletonTable";
+
+type ParseError = {
+  rowIndex: number; // Excel row number (1-based)
+  field: keyof DebtPricing | string;
+  message: string;
+  rawValue?: unknown;
+};
+
+// Allow blank id during upload for inserts
+type DebtPricingUploadRow = Omit<DebtPricing, "id"> & { id?: number };
+
+type ColumnDef<K extends keyof DebtPricingUploadRow> = {
+  label: string;
+  key: K;
+  align?: "right";
+  format?: "number" | "m/dd/yyyy";
+  parse?: (raw: unknown) => DebtPricingUploadRow[K];
+  fallback?: DebtPricingUploadRow[K];
+};
 
 interface Props {
   seriesId: number | null;
@@ -20,33 +38,29 @@ interface Props {
   onValidate: (results: { valid: boolean; errors: string[] }) => void;
 }
 
-// ✅ Single source of truth — drives headers, table, and Excel export
-const COLUMNS: {
-  label: string;
-  key: keyof DebtPricing;
-  align?: "right";
-  format?: "number" | "m/dd/yyyy";
-}[] = [
-  { label: "Id", key: "id" },
-  { label: "Maturity Date", key: "maturity_date", format: "m/dd/yyyy" },
+const isBlank = (v: unknown) => v === null || v === undefined || v === "";
 
-  // numeric columns (add format: "number")
-  { label: "Amount", key: "amount", align: "right", format: "number" },
-  {
-    label: "Coupon Rate",
-    key: "coupon_rate",
-    align: "right",
-    format: "number",
-  },
-  { label: "Yield Rate", key: "yield_rate", align: "right", format: "number" },
-  { label: "Price", key: "price", align: "right", format: "number" },
-  {
-    label: "Premium/Discount",
-    key: "premium_discount",
-    align: "right",
-    format: "number",
-  },
-];
+function tryParse<T>(
+  rowIndex: number,
+  field: string,
+  rawValue: unknown,
+  parse: (raw: unknown) => T,
+  fallback: T,
+  errors: ParseError[],
+): T {
+  try {
+    return parse(rawValue);
+  } catch (e) {
+    const message =
+      e instanceof Error
+        ? e.message
+        : typeof e === "string"
+          ? e
+          : "Unknown error";
+    errors.push({ rowIndex, field, message, rawValue });
+    return fallback;
+  }
+}
 
 const DebtPricingUpload: React.FC<Props> = ({
   seriesId,
@@ -58,97 +72,233 @@ const DebtPricingUpload: React.FC<Props> = ({
   const [error, setError] = useState<string[] | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
+  // ✅ Single source of truth (labels, table, export, parsing)
+  const COLUMNS = useMemo<ColumnDef<keyof DebtPricingUploadRow>[]>(() => {
+    const parseOptionalNumber = (raw: unknown) => {
+      if (isBlank(raw)) return undefined; // ✅ allow inserts
+      return excelNumberToJSONNumber(raw) as any;
+    };
+
+    const parseOptionalDate = (raw: unknown) => {
+      if (isBlank(raw)) return undefined;
+      return excelDateToJSONString(raw) as any;
+    };
+
+    const parseRequiredNumber = (raw: unknown) => {
+      // for numeric columns, treat blank as undefined too (lets validator decide)
+      if (isBlank(raw)) return undefined;
+      return excelNumberToJSONNumber(raw) as any;
+    };
+
+    return [
+      {
+        label: "Id",
+        key: "id",
+        parse: parseOptionalNumber,
+        fallback: undefined,
+      },
+
+      {
+        label: "Maturity Date",
+        key: "maturity_date",
+        format: "m/dd/yyyy",
+        parse: parseOptionalDate,
+        fallback: undefined,
+      },
+
+      {
+        label: "Amount",
+        key: "amount",
+        align: "right",
+        format: "number",
+        parse: parseRequiredNumber,
+        fallback: undefined,
+      },
+      {
+        label: "Coupon Rate",
+        key: "coupon_rate",
+        align: "right",
+        format: "number",
+        parse: parseRequiredNumber,
+        fallback: undefined,
+      },
+      {
+        label: "Yield Rate",
+        key: "yield_rate",
+        align: "right",
+        format: "number",
+        parse: parseRequiredNumber,
+        fallback: undefined,
+      },
+      {
+        label: "Price",
+        key: "price",
+        align: "right",
+        format: "number",
+        parse: parseRequiredNumber,
+        fallback: undefined,
+      },
+      {
+        label: "Premium/Discount",
+        key: "premium_discount",
+        align: "right",
+        format: "number",
+        parse: parseRequiredNumber,
+        fallback: undefined,
+      },
+    ];
+  }, []);
+
+  // ✅ Load existing server-side rows (edit mode)
   useEffect(() => {
-    if (seriesId === null) {
-      setIsLoading(false); // ✅ no fetch if seriesId is null for creating a new series
-      return;
-    }
+    let alive = true;
 
-    setIsLoading(true);
-    console.log("Fetching debt pricing for seriesId:", seriesId); // ✅ log fetch trigger
-    fetchById<DebtPricing[]>({
-      endpoint: getSeriesPricingById(seriesId),
-      entityName: "Debt Series Pricing",
-      mapResponse: (raw) => raw,
-    }).then((data) => {
-      if (data.length > 0) {
-        setRows(data);
-        onInitialLoad(data);
-        onChange(data);
+    (async () => {
+      if (seriesId == null) {
         setIsLoading(false);
+        return;
       }
-    });
-  }, [seriesId]);
 
-  const handleUpload = async (file: File) => {
-    const wb = new ExcelJS.Workbook();
-    await wb.xlsx.load(await file.arrayBuffer());
-    const ws = wb.worksheets[0];
+      setIsLoading(true);
+      try {
+        const data = await fetchById<DebtPricing[]>({
+          endpoint: getSeriesPricingById(seriesId),
+          entityName: "Debt Series Pricing",
+          mapResponse: (raw) => raw,
+        });
 
-    const parsed: DebtPricing[] = [];
+        if (!alive) return;
 
-    ws.eachRow?.((row, idx) => {
-      if (idx === 1) return; // skip header
+        if (data?.length) {
+          setRows(data);
+          onInitialLoad(data);
+          onChange(data);
+        } else {
+          setRows([]);
+        }
+      } finally {
+        if (alive) setIsLoading(false);
+      }
+    })();
 
-      const vals = (row.values as any[]).slice(1);
-      const entry = Object.fromEntries(
-        COLUMNS.map(({ key }, i) => [key, vals[i]]),
-      );
+    return () => {
+      alive = false;
+    };
+  }, [seriesId, onChange, onInitialLoad]);
 
-      parsed.push({
-        ...entry,
-        id: excelNumberToJSONNumber(entry.id),
-        maturity_date: excelDateToJSONString(entry.maturity_date),
-        amount: excelNumberToJSONNumber(entry.amount),
-        coupon_rate: excelNumberToJSONNumber(entry.coupon_rate),
-        yield_rate: excelNumberToJSONNumber(entry.yield_rate),
-        price: excelNumberToJSONNumber(entry.price),
-        premium_discount: excelNumberToJSONNumber(entry.premium_discount),
-      } as DebtPricing);
-    });
+  const handleUpload = useCallback(
+    async (file: File) => {
+      const wb = new ExcelJS.Workbook();
+      await wb.xlsx.load(await file.arrayBuffer());
 
-    // Validate against existing rows
-    const validation = validateDebtPricingBatch(parsed);
+      const ws = wb.worksheets[0];
+      if (!ws) {
+        const msg = "No worksheet found in uploaded file.";
+        setError([msg]);
+        onValidate({ valid: false, errors: [msg] });
+        return;
+      }
 
-    if (!validation.valid) {
-      setError(validation.errors); // ❌ show validation errors
-      onValidate({ valid: false, errors: validation.errors }); // ❌ notify parent of validation failure
-      return;
-    } else {
-      console.log("Validation passed, parsed data:", parsed); // ✅ log parsed data
-      onValidate({ valid: true, errors: [] }); // ✅ notify parent of successful validation
-    }
+      const parseErrors: ParseError[] = [];
+      const parsed: DebtPricingUploadRow[] = [];
 
-    setError(null); // ✅ clear previous errors
-    setRows(parsed);
-    onChange(parsed);
-  };
+      const sheetValues = ws.getSheetValues() as unknown[][];
 
-  const handleDownload = () =>
+      for (let r = 2; r < sheetValues.length; r++) {
+        const row = sheetValues[r];
+        if (!row) continue;
+
+        // Skip blank rows across our columns
+        const relevantCells = COLUMNS.map((_, idx) => row[idx + 1]);
+        const isRowBlank = !relevantCells.some((v) => !isBlank(v));
+        if (isRowBlank) continue;
+
+        const item: Partial<DebtPricingUploadRow> = {
+          series_id: seriesId as any, // keep consistent with your original behavior
+        };
+
+        for (let c = 0; c < COLUMNS.length; c++) {
+          const col = COLUMNS[c];
+          const raw = row[c + 1];
+
+          if (!col.parse) {
+            (item as any)[col.key] = raw;
+          } else {
+            (item as any)[col.key] = tryParse(
+              r,
+              String(col.key),
+              raw,
+              col.parse as any,
+              col.fallback as any,
+              parseErrors,
+            );
+          }
+        }
+
+        parsed.push(item as DebtPricingUploadRow);
+      }
+
+      // Convert parse errors to displayable strings
+      const parseErrorLines =
+        parseErrors.length > 0
+          ? parseErrors.map(
+              (e) =>
+                `Row ${e.rowIndex}, ${e.field}: ${e.message}` +
+                (e.rawValue !== undefined
+                  ? ` (value: ${String(e.rawValue)})`
+                  : ""),
+            )
+          : [];
+
+      // ✅ Validation: if your validator expects id:number, normalize only for validation
+      // (does NOT change what you store/submit for inserts)
+      const rowsForValidation = parsed.map((r) => ({
+        ...r,
+        id: (r.id ?? 0) as any, // sentinel only for validation if needed
+      })) as any;
+
+      const validation = validateDebtPricingBatch(rowsForValidation);
+      const validationLines = validation.valid ? [] : validation.errors;
+
+      const allErrors = [...parseErrorLines, ...validationLines];
+
+      if (allErrors.length) {
+        setError(allErrors);
+        onValidate({ valid: false, errors: allErrors });
+        return;
+      }
+
+      // ✅ Success — keep id undefined for inserts
+      const finalRows = parsed as unknown as DebtPricing[];
+
+      setError(null);
+      onValidate({ valid: true, errors: [] });
+      setRows(finalRows);
+      onChange(finalRows);
+    },
+    [COLUMNS, onChange, onValidate, seriesId],
+  );
+
+  const handleDownload = useCallback(() => {
     downloadExcelTemplate(
       "DebtPricingTemplate.xlsx",
       "Debt Pricing",
       COLUMNS.map((c) => c.label),
-      rows.map((r) => COLUMNS.map((c) => r[c.key])),
+      rows.map((r) => COLUMNS.map((c) => (r as any)[c.key])),
     );
+  }, [COLUMNS, rows]);
 
   return (
     <div className="space-y-8">
-      {/* Title */}
       <h3 className="text-gray-700 text-3xl font-semibold">
         Debt Pricing Upload
       </h3>
-      <div className="mt-2 w-full h-1 bg-gray-300 rounded-full"></div>
+      <div className="mt-2 w-full h-1 bg-gray-300 rounded-full" />
 
-      {/* Beautiful Spaced Upload Bar */}
       <div className="mt-4">
-        <UploadBar
-          onUpload={(file) => handleUpload(file)}
-          onDownload={handleDownload}
-        />
+        <UploadBar onUpload={handleUpload} onDownload={handleDownload} />
       </div>
 
-      {/* Spaced Error Box */}
       {error && (
         <div className="mt-6 p-4 rounded-xl bg-red-100 border border-red-300 text-red-700 shadow-sm">
           <strong className="block mb-1">Upload Errors:</strong>
@@ -169,7 +319,7 @@ const DebtPricingUpload: React.FC<Props> = ({
         </div>
       ) : (
         <div className="mt-6">
-          <DataTable columns={COLUMNS} rows={rows} />
+          <DataTable columns={COLUMNS as any} rows={rows} />
         </div>
       )}
     </div>

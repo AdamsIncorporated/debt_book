@@ -1,14 +1,17 @@
 import { Routes, Route } from "react-router-dom";
 import DebtSeriesLandingTable from "./DebtSeriesLandingTable";
-import DebtMasterForm from "./DebtMasterForm";
+import DebtSeriesForm from "./DebtSeriesForm";
 import React from "react";
 
 export default function AppRoutes() {
   return (
     <Routes>
       <Route path="/" element={<DebtSeriesLandingTable />} />
-      <Route path="/create-new-series" element={<DebtMasterForm />} />
-      <Route path="/debt-series/:id" element={<DebtMasterForm />} />
+      <Route path="/debt-series/:id" element={<DebtSeriesForm />} />
+      <Route
+        path="/debt-series/create-new-series"
+        element={<DebtSeriesForm />}
+      />
     </Routes>
   );
 }

@@ -131,7 +131,7 @@ const DebtSeriesLandingTable: React.FC = () => {
       {/* ✅ Create new */}
       <div className="my-4 flex justify-end">
         <button
-          onClick={() => navigate("/create-new-series")}
+          onClick={() => navigate("/debt-series/create-new-series")}
           className="rounded-md bg-gray-500 px-4 py-2 text-sm font-medium text-white hover:bg-gray-600 transition hover:cursor-pointer"
         >
           ✨ Create New Series
