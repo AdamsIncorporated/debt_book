@@ -49,10 +49,10 @@ const DebtSeriesLandingTable: React.FC = () => {
                 {[
                   "ID",
                   "Series",
+                  "Structure",
                   "Tax Exempt",
-                  "Par Amount",
-                  "Premium",
                   "Issuance Cost",
+                  "Use Of Proceeds",
                   "Created",
                   "Actions",
                 ].map((h) => (
@@ -81,14 +81,14 @@ const DebtSeriesLandingTable: React.FC = () => {
     <div className="mx-auto w-3/4 py-10">
       <div className="overflow-hidden rounded-lg border border-gray-200 shadow-sm">
         <table className="w-full text-sm">
-          <thead className="bg-gray-100 text-gray-700">
+          <thead className="bg-gray-200 text-gray-700">
             <tr>
               <th className="px-4 py-3 text-left">ID</th>
               <th className="px-4 py-3 text-left">Series</th>
+              <th className="px-4 py-3 text-left">Structure</th>
               <th className="px-4 py-3 text-left">Tax Exempt</th>
-              <th className="px-4 py-3 text-right">Par Amount</th>
-              <th className="px-4 py-3 text-right">Premium</th>
-              <th className="px-4 py-3 text-right">Issuance Cost</th>
+              <th className="px-4 py-3 text-left">Issuance Cost</th>
+              <th className="px-4 py-3 text-left">Use of Proceeds</th>
               <th className="px-4 py-3 text-left">Created</th>
               <th className="px-4 py-3 text-center">Actions</th>
             </tr>
@@ -99,16 +99,12 @@ const DebtSeriesLandingTable: React.FC = () => {
               <tr key={s.id} className="hover:bg-gray-50 transition">
                 <td className="px-4 py-3">{s.id}</td>
                 <td className="px-4 py-3 font-medium">{s.series_name}</td>
+                <td className="px-4 py-3 font-medium">{s.structure}</td>
                 <td className="px-4 py-3">{s.is_tax_exempt ? "Yes" : "No"}</td>
-                <td className="px-4 py-3 text-right">
-                  {formatCurrency(s.par_amount)}
-                </td>
-                <td className="px-4 py-3 text-right">
-                  {formatCurrency(s.premium ?? 0)}
-                </td>
                 <td className="px-4 py-3 text-right">
                   {formatCurrency(s.cost_of_issuance ?? 0)}
                 </td>
+                <td className="px-4 py-3 font-medium">{s.use_of_proceeds}</td>
                 <td className="px-4 py-3">{s.created_at ?? "—"}</td>
                 <td className="px-4 py-3 text-center">
                   <button

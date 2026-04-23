@@ -22,10 +22,10 @@ export interface SeriesNameList {
 export interface DebtSeries {
   id: number | null;
   series_name: string;
+  structure: string;
   is_tax_exempt?: number;
-  par_amount: number;
-  premium_discount?: number | null;
   cost_of_issuance?: number | null;
+  use_of_proceeds: string;
   created_at?: string | null;
 }
 
