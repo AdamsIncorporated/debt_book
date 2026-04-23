@@ -16,10 +16,10 @@ pub struct DebtSeriesPatchJson {
 pub struct DebtSeries {
     pub id: i64,
     pub series_name: String,
+    pub structure: String,
     pub is_tax_exempt: Option<bool>,
-    pub par_amount: f64,
-    pub premium: Option<f64>,
     pub cost_of_issuance: Option<f64>,
+    pub use_of_proceeds: Option<String>,
     pub created_at: Option<String>,
 }
 

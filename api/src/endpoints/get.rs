@@ -3,7 +3,6 @@ use crate::structs::get::DebtPricing;
 use crate::structs::get::DebtSeries;
 use crate::structs::get::DebtService;
 use crate::structs::get::SeriesNameList;
-use actix_web::body::MessageBody;
 use actix_web::{HttpResponse, Responder, get, web};
 use anyhow::{Context, Ok, Result};
 use odbc_api::buffers::Indicator;
@@ -78,13 +77,15 @@ pub async fn get_series_id_by_name(
 pub async fn get_all_debt_series(state: web::Data<AppState>) -> impl Responder {
     const COLUMN_ID: u16 = 1;
     const COLUMN_SERIES_NAME: u16 = 2;
-    const COLUMN_IS_TAX_EXEMPT: u16 = 3;
-    const COLUMN_PAR_AMOUNT: u16 = 4;
-    const COLUMN_PREMIUM: u16 = 5;
-    const COLUMN_COST_OF_ISSUANCE: u16 = 6;
+    const COLUMN_STRUCTURE: u16 = 3;
+    const COLUMN_IS_TAX_EXEMPT: u16 = 4;
+    const COLUMN_COST_OF_ISSUANCE: u16 = 5;
+    const COLUMN_USE_OF_PROCEEDS: u16 = 6;
     const COLUMN_CREATED_AT: u16 = 7;
 
     const SERIES_NAME_CAPACITY: usize = 100;
+    const STRUCTURE_CAPACITY: usize = 100;
+    const USE_OF_PROCEEDS_CAPACITY: usize = 100;
     const CREATED_AT_CAPACITY: usize = 50;
 
     const SQL_GET_ALL_SERIES: &str = "SELECT * FROM TBL_DEBT_SERIES";
@@ -107,39 +108,31 @@ pub async fn get_all_debt_series(state: web::Data<AppState>) -> impl Responder {
                 .context("Failed to get all debt series.")?
             {
                 while let Some(mut row) = cursor.next_row()? {
-                    /* -------- column 1: id (Option<i64>) -------- */
                     let mut id_buf = 0i64;
                     row.get_data(COLUMN_ID, &mut id_buf)?;
                     let id = id_buf;
 
-                    /* -------- column 2: series_name (Vec<u8>, NOT NULL) -------- */
                     let mut series_name_buf = Vec::<u8>::with_capacity(SERIES_NAME_CAPACITY);
                     row.get_text(COLUMN_SERIES_NAME, &mut series_name_buf)?;
                     let series_name = String::from_utf8(series_name_buf)?;
 
-                    /* -------- column 3: is_tax_exempt (Option<bool>) -------- */
+                    let mut structure_buf = Vec::<u8>::with_capacity(STRUCTURE_CAPACITY);
+                    row.get_text(COLUMN_STRUCTURE, &mut structure_buf)?;
+                    let structure = String::from_utf8(structure_buf)?;
+
                     let mut is_tax_exempt_buf = Nullable::<u8>::null();
                     row.get_data(COLUMN_IS_TAX_EXEMPT, &mut is_tax_exempt_buf)?;
                     let is_tax_exempt: Option<bool> = is_tax_exempt_buf.into_opt().map(|v| v != 0);
 
-                    /* -------- column 4: par_amount (f64, NOT NULL) -------- */
-                    let mut par_amount_buf = Nullable::<f64>::null();
-                    row.get_data(COLUMN_PAR_AMOUNT, &mut par_amount_buf)?;
-                    let par_amount = par_amount_buf
-                        .into_opt()
-                        .expect("par_amount must not be NULL");
+                    let mut use_of_proceeds_buf =
+                        Vec::<u8>::with_capacity(USE_OF_PROCEEDS_CAPACITY);
+                    row.get_text(COLUMN_USE_OF_PROCEEDS, &mut use_of_proceeds_buf)?;
+                    let use_of_proceeds = Some(String::from_utf8(use_of_proceeds_buf)?);
 
-                    /* -------- column 5: premium (Option<f64>) -------- */
-                    let mut premium_buf = Nullable::<f64>::null();
-                    row.get_data(COLUMN_PREMIUM, &mut premium_buf)?;
-                    let premium = premium_buf.into_opt();
-
-                    /* -------- column 6: cost_of_issuance (Option<f64>) -------- */
                     let mut cost_of_issuance_buf = Nullable::<f64>::null();
                     row.get_data(COLUMN_COST_OF_ISSUANCE, &mut cost_of_issuance_buf)?;
                     let cost_of_issuance = cost_of_issuance_buf.into_opt();
 
-                    /* -------- column 7: created_at (Option<String>) -------- */
                     let mut created_at_buf = Vec::<u8>::with_capacity(CREATED_AT_CAPACITY);
                     row.get_text(COLUMN_CREATED_AT, &mut created_at_buf)?;
                     let created_at = String::from_utf8(created_at_buf).ok();
@@ -147,10 +140,10 @@ pub async fn get_all_debt_series(state: web::Data<AppState>) -> impl Responder {
                     rows_out.push(DebtSeries {
                         id,
                         series_name,
+                        structure,
                         is_tax_exempt,
-                        par_amount,
-                        premium,
                         cost_of_issuance,
+                        use_of_proceeds,
                         created_at,
                     });
                 }
@@ -178,13 +171,15 @@ pub async fn get_debt_series_by_id(
 ) -> impl Responder {
     const COLUMN_ID: u16 = 1;
     const COLUMN_SERIES_NAME: u16 = 2;
-    const COLUMN_IS_TAX_EXEMPT: u16 = 3;
-    const COLUMN_PAR_AMOUNT: u16 = 4;
-    const COLUMN_PREMIUM: u16 = 5;
-    const COLUMN_COST_OF_ISSUANCE: u16 = 6;
+    const COLUMN_STRUCTURE: u16 = 3;
+    const COLUMN_IS_TAX_EXEMPT: u16 = 4;
+    const COLUMN_COST_OF_ISSUANCE: u16 = 5;
+    const COLUMN_USE_OF_PROCEEDS: u16 = 6;
     const COLUMN_CREATED_AT: u16 = 7;
 
     const SERIES_NAME_CAPACITY: usize = 100;
+    const STRUCTURE_CAPACITY: usize = 100;
+    const USE_OF_PROCEEDS_CAPACITY: usize = 100;
     const CREATED_AT_CAPACITY: usize = 50;
 
     const SQL_GET_ALL_SERIES: &str = "SELECT * FROM TBL_DEBT_SERIES WHERE ID = ?";
@@ -225,28 +220,34 @@ pub async fn get_debt_series_by_id(
                         String::from_utf8(buf).context("series_name contains invalid UTF-8")?
                     };
 
+                    let structure: String = {
+                        let mut buf = Vec::<u8>::with_capacity(STRUCTURE_CAPACITY);
+                        row.get_text(COLUMN_STRUCTURE, &mut buf)?;
+                        if buf.is_empty() {
+                            anyhow::bail!("structure is NULL but required")
+                        }
+                        String::from_utf8(buf).context("structure contains invalid UTF-8")?
+                    };
+
                     let is_tax_exempt: Option<bool> = {
                         let mut buf = Nullable::<u8>::null();
                         row.get_data(COLUMN_IS_TAX_EXEMPT, &mut buf)?;
                         buf.into_opt().map(|v| v != 0)
                     };
 
-                    let par_amount: f64 = {
-                        let mut buf = Nullable::<f64>::null();
-                        row.get_data(COLUMN_PAR_AMOUNT, &mut buf)?;
-                        buf.into_opt().context("par_amount is NULL but required")?
-                    };
-
-                    let premium: Option<f64> = {
-                        let mut buf = Nullable::<f64>::null();
-                        row.get_data(COLUMN_PREMIUM, &mut buf)?;
-                        buf.into_opt()
-                    };
-
                     let cost_of_issuance: Option<f64> = {
                         let mut buf = Nullable::<f64>::null();
                         row.get_data(COLUMN_COST_OF_ISSUANCE, &mut buf)?;
                         buf.into_opt()
+                    };
+
+                    let use_of_proceeds: Option<String> = {
+                        let mut buf = Vec::<u8>::with_capacity(USE_OF_PROCEEDS_CAPACITY);
+                        row.get_text(COLUMN_USE_OF_PROCEEDS, &mut buf)?;
+                        Some(
+                            String::from_utf8(buf)
+                                .context("use of proceeds contains invalid UTF-8")?,
+                        )
                     };
 
                     let created_at: Option<String> = {
@@ -265,10 +266,10 @@ pub async fn get_debt_series_by_id(
                     rows_out.push(DebtSeries {
                         id,
                         series_name,
+                        structure,
                         is_tax_exempt,
-                        par_amount,
-                        premium,
                         cost_of_issuance,
+                        use_of_proceeds,
                         created_at,
                     });
                 }

@@ -4,6 +4,7 @@ import {
   PATCH_DEBT_SERVICE,
   POST_DEBT_PRICING,
   POST_DEBT_SERVICE,
+  GET_SERIES_ID_BY_NAME,
 } from "../Constants/Constants";
 import ExcelJS from "exceljs";
 
@@ -130,71 +131,69 @@ export function diffArray<T extends { id?: number }>(
 }
 
 export async function performCrudOperations(payload: SubmitPayload) {
-  //
-  // SERIES (single object)
-  //
+  const pricing = diffArray(payload.pricing.original, payload.pricing.current);
+  const service = diffArray(payload.service.original, payload.service.current);
+
+  let seriesId = payload.series.current?.id;
+
+  const ops: Promise<any>[] = [];
+
+  /**
+   * 1. SERIES INSERT OR UPDATE
+   */
+  let seriesResponse: any = null;
+
   const seriesChanged =
     JSON.stringify(payload.series.original) !==
     JSON.stringify(payload.series.current);
 
-  const seriesUpdate = seriesChanged ? payload.series.current : null;
+  if (seriesChanged) {
+    seriesResponse = await patch(PATCH_DEBT_SERIES, payload.series.current);
 
-  //
-  // ARRAYS
-  //
-  const pricing = diffArray(payload.pricing.original, payload.pricing.current);
-  const service = diffArray(payload.service.original, payload.service.current);
-
-  //
-  // SEND TO SERVER (using backend struct format)
-  //
-  const ops: Promise<any>[] = [];
-
-  //
-  // SERIES: backend expects DebtSeriesPatch (NOT wrapped)
-  //
-  if (seriesUpdate) {
-    ops.push(patch(PATCH_DEBT_SERIES, seriesUpdate));
+    // 🔥 IMPORTANT: capture returned ID for new inserts
+    seriesId =
+      seriesResponse?.data?.id ?? seriesResponse?.data?.series_id ?? seriesId;
   }
 
-  //
-  // PRICING INSERTS
-  //
-  if (pricing.inserts.length > 0) {
-    ops.push(post(POST_DEBT_PRICING, { patches: pricing.inserts }));
+  /**
+   * 2. Inject seriesId into children (ONLY FOR INSERTS)
+   */
+  const pricingInserts = pricing.inserts.map((p) => ({
+    ...p,
+    series_id: seriesId,
+  }));
+
+  const serviceInserts = service.inserts.map((s) => ({
+    ...s,
+    series_id: seriesId,
+  }));
+
+  /**
+   * 3. PRICING OPS
+   */
+  if (pricingInserts.length > 0) {
+    ops.push(post(POST_DEBT_PRICING, { patches: pricingInserts }));
   }
 
-  //
-  // PRICING UPDATES
-  //
   if (pricing.updates.length > 0) {
     ops.push(patch(PATCH_DEBT_PRICING, { patches: pricing.updates }));
   }
 
-  //
-  // PRICING DELETES
-  //
   if (pricing.deletes.length > 0) {
     ops.push(del(PATCH_DEBT_PRICING, { patches: pricing.deletes }));
   }
 
-  //
-  // SERVICE INSERTS
-  //
-  if (service.inserts.length > 0) {
-    ops.push(post(POST_DEBT_SERVICE, { patches: service.inserts }));
+  /**
+   * 4. SERVICE OPS
+   */
+  if (serviceInserts.length > 0) {
+    ops.push(post(POST_DEBT_SERVICE, { patches: serviceInserts }));
   }
 
-  //
-  // SERVICE UPDATES
-  //
   if (service.updates.length > 0) {
     ops.push(patch(PATCH_DEBT_SERVICE, { patches: service.updates }));
   }
 
-  //
-  // SERVICE DELETES
-  //
   if (service.deletes.length > 0) {
     ops.push(del(PATCH_DEBT_SERVICE, { patches: service.deletes }));
   }
