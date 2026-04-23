@@ -26,10 +26,10 @@ pub async fn post_series(
                 INSERT INTO TBL_DEBT_SERIES 
                     (
                         SERIES_NAME, 
+                        STRUCTURE,
                         IS_TAX_EXEMPT, 
-                        PAR_AMOUNT, 
-                        PREMIUM, 
-                        COST_OF_ISSUANCE
+                        COST_OF_ISSUANCE,
+                        USE_OF_PROCEEDS
                     ) VALUES (?, ?, ?, ?, ?)";
             let params = (
                 &payload.series_name.into_parameter(),

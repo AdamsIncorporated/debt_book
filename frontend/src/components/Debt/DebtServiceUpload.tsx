@@ -11,6 +11,7 @@ import { UploadBar } from "../Widgets/UploadBar";
 import { validateDebtServiceBatch } from "../utils/validate";
 import { fetchById } from "../utils/api";
 import { SkeletonTable } from "../Widgets/SkeletonTable";
+import { useParams } from "react-router-dom";
 
 type ParseError = {
   rowIndex: number; // Excel row number (1-based)
@@ -33,13 +34,6 @@ type ColumnDef<K extends keyof DebtServiceUploadRow> = {
   fallback?: DebtServiceUploadRow[K];
 };
 
-interface Props {
-  seriesId: number | null;
-  onChange: (rows: DebtService[]) => void;
-  onInitialLoad: (rows: DebtService[]) => void;
-  onValidate(results: { valid: boolean; errors: string[] }): void;
-}
-
 const isBlank = (v: unknown) => v === null || v === undefined || v === "";
 
 function tryParse<T>(
@@ -48,24 +42,25 @@ function tryParse<T>(
   rawValue: unknown,
   parse: (raw: unknown) => T,
   fallback: T,
-  errors: ParseError[]
+  errors: ParseError[],
 ): T {
   try {
     return parse(rawValue);
   } catch (e) {
     const message =
-      e instanceof Error ? e.message : typeof e === "string" ? e : "Unknown error";
+      e instanceof Error
+        ? e.message
+        : typeof e === "string"
+          ? e
+          : "Unknown error";
     errors.push({ rowIndex, field, message, rawValue });
     return fallback;
   }
 }
 
-const DebtServiceUpload: React.FC<Props> = ({
-  seriesId,
-  onChange,
-  onInitialLoad,
-  onValidate,
-}) => {
+const DebtServiceUpload: React.FC = () => {
+  const { seriesIdParam } = useParams<{ seriesIdParam?: string }>();
+  const seriesId = seriesIdParam ? Number(seriesIdParam) : undefined;
   const [rows, setRows] = useState<DebtService[]>([]);
   const [error, setError] = useState<string[] | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -89,10 +84,34 @@ const DebtServiceUpload: React.FC<Props> = ({
     };
 
     return [
-      { label: "Id", key: "id", parse: parseOptionalNumber, fallback: undefined },
-      { label: "Payment Date", key: "payment_date", parse: parseOptionalDate, fallback: undefined },
-      { label: "Principal", key: "principal", align: "right", format: "number", parse: parseRequiredNumber, fallback: undefined },
-      { label: "Interest", key: "interest", align: "right", format: "number", parse: parseRequiredNumber, fallback: undefined },
+      {
+        label: "Id",
+        key: "id",
+        parse: parseOptionalNumber,
+        fallback: undefined,
+      },
+      {
+        label: "Payment Date",
+        key: "payment_date",
+        parse: parseOptionalDate,
+        fallback: undefined,
+      },
+      {
+        label: "Principal",
+        key: "principal",
+        align: "right",
+        format: "number",
+        parse: parseRequiredNumber,
+        fallback: undefined,
+      },
+      {
+        label: "Interest",
+        key: "interest",
+        align: "right",
+        format: "number",
+        parse: parseRequiredNumber,
+        fallback: undefined,
+      },
     ];
   }, []);
 
@@ -118,8 +137,6 @@ const DebtServiceUpload: React.FC<Props> = ({
 
         if (data?.length) {
           setRows(data);
-          onInitialLoad(data);
-          onChange(data);
         } else {
           setRows([]);
         }
@@ -131,7 +148,7 @@ const DebtServiceUpload: React.FC<Props> = ({
     return () => {
       alive = false;
     };
-  }, [seriesId, onChange, onInitialLoad]);
+  }, [seriesId]);
 
   const handleUpload = useCallback(
     async (file: File) => {
@@ -142,7 +159,6 @@ const DebtServiceUpload: React.FC<Props> = ({
       if (!ws) {
         const msg = "No worksheet found in uploaded file.";
         setError([msg]);
-        onValidate({ valid: false, errors: [msg] });
         return;
       }
 
@@ -176,7 +192,7 @@ const DebtServiceUpload: React.FC<Props> = ({
               raw,
               col.parse as any,
               col.fallback as any,
-              parseErrors
+              parseErrors,
             );
           }
         }
@@ -196,7 +212,9 @@ const DebtServiceUpload: React.FC<Props> = ({
           ? parseErrors.map(
               (e) =>
                 `Row ${e.rowIndex}, ${e.field}: ${e.message}` +
-                (e.rawValue !== undefined ? ` (value: ${String(e.rawValue)})` : "")
+                (e.rawValue !== undefined
+                  ? ` (value: ${String(e.rawValue)})`
+                  : ""),
             )
           : [];
 
@@ -214,7 +232,6 @@ const DebtServiceUpload: React.FC<Props> = ({
 
       if (allErrors.length) {
         setError(allErrors);
-        onValidate({ valid: false, errors: allErrors });
         return;
       }
 
@@ -222,11 +239,9 @@ const DebtServiceUpload: React.FC<Props> = ({
       const finalRows = parsed as unknown as DebtService[];
 
       setError(null);
-      onValidate({ valid: true, errors: [] });
       setRows(finalRows);
-      onChange(finalRows);
     },
-    [COLUMNS, onChange, onValidate, seriesId]
+    [COLUMNS, seriesId],
   );
 
   const handleDownload = useCallback(() => {
@@ -234,14 +249,16 @@ const DebtServiceUpload: React.FC<Props> = ({
       "DebtServiceTemplate.xlsx",
       "Debt Service",
       COLUMNS.map((c) => c.label),
-      rows.map((r) => COLUMNS.map((c) => (r as any)[c.key]))
+      rows.map((r) => COLUMNS.map((c) => (r as any)[c.key])),
     );
   }, [COLUMNS, rows]);
 
   return (
     <div className="space-y-8">
       {/* Title */}
-      <h3 className="text-gray-700 text-3xl font-semibold">Debt Service Upload</h3>
+      <h3 className="text-gray-700 text-3xl font-semibold">
+        Debt Service Upload
+      </h3>
       <div className="mt-2 w-full h-1 bg-gray-300 rounded-full" />
 
       {/* Upload Bar */}
@@ -266,7 +283,8 @@ const DebtServiceUpload: React.FC<Props> = ({
         <SkeletonTable columnCount={COLUMNS.length} rowCount={6} />
       ) : rows.length === 0 ? (
         <div className="mt-6 p-4 rounded-xl bg-yellow-100 border border-yellow-300 text-yellow-700 shadow-sm">
-          No data uploaded yet. Please use the upload bar above to add debt service entries.
+          No data uploaded yet. Please use the upload bar above to add debt
+          service entries.
         </div>
       ) : (
         <div className="mt-6">

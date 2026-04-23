@@ -11,6 +11,7 @@ import { DataTable } from "../Widgets/DataTable";
 import { UploadBar } from "../Widgets/UploadBar";
 import { fetchById } from "../utils/api";
 import { SkeletonTable } from "../Widgets/SkeletonTable";
+import { useParams } from "react-router-dom";
 
 type ParseError = {
   rowIndex: number; // Excel row number (1-based)
@@ -30,13 +31,6 @@ type ColumnDef<K extends keyof DebtPricingUploadRow> = {
   parse?: (raw: unknown) => DebtPricingUploadRow[K];
   fallback?: DebtPricingUploadRow[K];
 };
-
-interface Props {
-  seriesId: number | null;
-  onChange: (v: DebtPricing[]) => void;
-  onInitialLoad: (v: DebtPricing[]) => void;
-  onValidate: (results: { valid: boolean; errors: string[] }) => void;
-}
 
 const isBlank = (v: unknown) => v === null || v === undefined || v === "";
 
@@ -62,12 +56,10 @@ function tryParse<T>(
   }
 }
 
-const DebtPricingUpload: React.FC<Props> = ({
-  seriesId,
-  onChange,
-  onInitialLoad,
-  onValidate,
-}) => {
+const DebtPricingUpload: React.FC = () => {
+  const { seriesIdParam } = useParams<{ seriesIdParam?: string }>();
+  const seriesId = seriesIdParam ? Number(seriesIdParam) : undefined;
+
   const [rows, setRows] = useState<DebtPricing[]>([]);
   const [error, setError] = useState<string[] | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -171,8 +163,6 @@ const DebtPricingUpload: React.FC<Props> = ({
 
         if (data?.length) {
           setRows(data);
-          onInitialLoad(data);
-          onChange(data);
         } else {
           setRows([]);
         }
@@ -184,7 +174,7 @@ const DebtPricingUpload: React.FC<Props> = ({
     return () => {
       alive = false;
     };
-  }, [seriesId, onChange, onInitialLoad]);
+  }, []);
 
   const handleUpload = useCallback(
     async (file: File) => {
@@ -195,7 +185,6 @@ const DebtPricingUpload: React.FC<Props> = ({
       if (!ws) {
         const msg = "No worksheet found in uploaded file.";
         setError([msg]);
-        onValidate({ valid: false, errors: [msg] });
         return;
       }
 
@@ -264,7 +253,6 @@ const DebtPricingUpload: React.FC<Props> = ({
 
       if (allErrors.length) {
         setError(allErrors);
-        onValidate({ valid: false, errors: allErrors });
         return;
       }
 
@@ -272,11 +260,9 @@ const DebtPricingUpload: React.FC<Props> = ({
       const finalRows = parsed as unknown as DebtPricing[];
 
       setError(null);
-      onValidate({ valid: true, errors: [] });
       setRows(finalRows);
-      onChange(finalRows);
     },
-    [COLUMNS, onChange, onValidate, seriesId],
+    [COLUMNS, seriesId],
   );
 
   const handleDownload = useCallback(() => {
