@@ -10,8 +10,6 @@ import DebtSeriesFormSkeleton from "../Widgets/DebtSeriesFormSkeleton";
 
 type Props = {
   seriesId: number | null;
-  parSum: number | null;
-  premiumDiscountSum: number | null;
   onChange: (v: DebtSeries) => void;
   onInitialLoad: (v: any) => void;
   onValidate(results: { valid: boolean; errors: string[] }): void;

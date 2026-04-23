@@ -1,10 +1,15 @@
-import React, { useMemo, useState } from "react";
+import React, { useState } from "react";
 import DebtSeriesForm from "./DebtSeriesForm";
 import DebtPricingUpload from "./DebtPricingUpload";
 import DebtServiceUpload from "./DebtServiceUpload";
 import { performCrudOperations, SubmitPayload } from "../utils/func";
 import { runWithToasts } from "../Widgets/toast";
 import { useNavigate, useParams } from "react-router-dom";
+import {
+  DebtPricing,
+  DebtSeries,
+  DebtService,
+} from "components/Constants/Constants";
 
 const DebtMasterForm = () => {
   const navigate = useNavigate();
@@ -27,11 +32,15 @@ const DebtMasterForm = () => {
     (v) => v !== false,
   );
 
-  const handlePricingChange = (rows: any[]) => {
+  const handleSeriesChange = (row: DebtSeries) => {
+    seriesFormData(row); // force new reference
+  };
+
+  const handlePricingChange = (rows: DebtPricing[]) => {
     setPricingFormData([...rows]); // force new reference
   };
 
-  const handleServiceChange = (rows: any[]) => {
+  const handleServiceChange = (rows: DebtService[]) => {
     setServiceFormData([...rows]); // force new reference
   };
 
@@ -46,7 +55,6 @@ const DebtMasterForm = () => {
 
     navigate("/");
   };
-
 
   return (
     <div className="m-6">
@@ -63,7 +71,7 @@ const DebtMasterForm = () => {
         <div className="mx-auto w-1/2">
           <DebtSeriesForm
             seriesId={seriesId}
-            onChange={setSeriesFormData}
+            onChange={handleSeriesChange}
             onInitialLoad={setSeriesOriginal}
             onValidate={({ valid }) => setIsSeriesValid(valid)}
           />
