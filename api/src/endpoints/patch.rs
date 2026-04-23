@@ -27,18 +27,18 @@ pub async fn patch_debt_series(
                 UPDATE TBL_DEBT_SERIES 
                 SET 
                     SERIES_NAME = ?,
+                    STRUCTURE = ?,
                     IS_TAX_EXEMPT = ?, 
-                    PAR_AMOUNT = ?, 
-                    PREMIUM = ?, 
-                    COST_OF_ISSUANCE = ?
+                    COST_OF_ISSUANCE = ?,
+                    USE_OF_PROCEEDS = ?
                 WHERE ID = ?";
 
             let params = (
                 &payload.series_name.into_parameter(),
+                &payload.structure.into_parameter(),
                 &payload.is_tax_exempt.into_parameter(),
-                &payload.par_amount.into_parameter(),
-                &payload.premium.into_parameter(),
                 &payload.cost_of_issuance.into_parameter(),
+                &payload.use_of_proceeds.into_parameter(),
                 &payload.id.into_parameter(),
             );
 

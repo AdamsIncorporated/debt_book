@@ -87,121 +87,7 @@ export async function downloadExcelTemplate(
   URL.revokeObjectURL(url);
 }
 
-type DiffResult<T> = {
-  inserts: T[];
-  updates: T[];
-  deletes: T[];
-};
-
-export type SubmitPayload = {
-  series: { original: any; current: any };
-  pricing: { original: any[]; current: any[] };
-  service: { original: any[]; current: any[] };
-};
-
-export function diffArray<T extends { id?: number }>(
-  original: T[],
-  current: T[],
-): DiffResult<T> {
-  const inserts: T[] = [];
-  const updates: T[] = [];
-  const deletes: T[] = [];
-
-  const origMap = new Map(original.map((item) => [item.id, item]));
-
-  // INSERTS + UPDATES
-  current.forEach((item) => {
-    if (!item.id) {
-      inserts.push(item);
-    } else {
-      const orig = origMap.get(item.id);
-      if (orig && JSON.stringify(orig) !== JSON.stringify(item)) {
-        updates.push(item);
-      }
-    }
-  });
-
-  // DELETES
-  original.forEach((item) => {
-    const stillExists = current.some((r) => r.id === item.id);
-    if (!stillExists) deletes.push(item);
-  });
-
-  return { inserts, updates, deletes };
-}
-
-export async function performCrudOperations(payload: SubmitPayload) {
-  const pricing = diffArray(payload.pricing.original, payload.pricing.current);
-  const service = diffArray(payload.service.original, payload.service.current);
-
-  let seriesId = payload.series.current?.id;
-
-  const ops: Promise<any>[] = [];
-
-  /**
-   * 1. SERIES INSERT OR UPDATE
-   */
-  let seriesResponse: any = null;
-
-  const seriesChanged =
-    JSON.stringify(payload.series.original) !==
-    JSON.stringify(payload.series.current);
-
-  if (seriesChanged) {
-    seriesResponse = await patch(PATCH_DEBT_SERIES, payload.series.current);
-
-    // 🔥 IMPORTANT: capture returned ID for new inserts
-    seriesId =
-      seriesResponse?.data?.id ?? seriesResponse?.data?.series_id ?? seriesId;
-  }
-
-  /**
-   * 2. Inject seriesId into children (ONLY FOR INSERTS)
-   */
-  const pricingInserts = pricing.inserts.map((p) => ({
-    ...p,
-    series_id: seriesId,
-  }));
-
-  const serviceInserts = service.inserts.map((s) => ({
-    ...s,
-    series_id: seriesId,
-  }));
-
-  /**
-   * 3. PRICING OPS
-   */
-  if (pricingInserts.length > 0) {
-    ops.push(post(POST_DEBT_PRICING, { patches: pricingInserts }));
-  }
-
-  if (pricing.updates.length > 0) {
-    ops.push(patch(PATCH_DEBT_PRICING, { patches: pricing.updates }));
-  }
-
-  if (pricing.deletes.length > 0) {
-    ops.push(del(PATCH_DEBT_PRICING, { patches: pricing.deletes }));
-  }
-
-  /**
-   * 4. SERVICE OPS
-   */
-  if (serviceInserts.length > 0) {
-    ops.push(post(POST_DEBT_SERVICE, { patches: serviceInserts }));
-  }
-
-  if (service.updates.length > 0) {
-    ops.push(patch(PATCH_DEBT_SERVICE, { patches: service.updates }));
-  }
-
-  if (service.deletes.length > 0) {
-    ops.push(del(PATCH_DEBT_SERVICE, { patches: service.deletes }));
-  }
-
-  return Promise.all(ops);
-}
-
-async function post(url: string, body: any) {
+export async function post(url: string, body: any) {
   console.log("POST →", url, "BODY →", body);
 
   try {
@@ -223,7 +109,7 @@ async function post(url: string, body: any) {
   }
 }
 
-async function patch(url: string, body: any) {
+export async function patch(url: string, body: any) {
   console.log("PATCH →", url, "BODY →", body);
 
   try {
@@ -245,7 +131,7 @@ async function patch(url: string, body: any) {
   }
 }
 
-async function del(url: string, body?: any) {
+export async function del(url: string, body?: any) {
   console.log("DELETE →", url, "BODY →", body);
 
   try {

@@ -25,29 +25,6 @@ function isValidExcelDate(value: unknown): boolean {
   return false;
 }
 
-export const validateDebtSeries = (
-  batch: DebtSeries,
-): { valid: boolean; errors: string[] } => {
-  const errors: string[] = [];
-
-  if (!batch.series_name.trim()) {
-    errors.push("Series Name is required.");
-  }
-
-  if (!batch.par_amount || Number(batch.par_amount) <= 0) {
-    errors.push("Par Amount must be greater than 0.");
-  }
-
-  if (Number(batch.premium) < 0) {
-    errors.push("Premium cannot be negative.");
-  }
-
-  return {
-    valid: errors.length === 0,
-    errors,
-  };
-};
-
 export function validateDebtServiceBatch(batch: DebtService[]): {
   valid: boolean;
   errors: string[];
@@ -189,3 +166,49 @@ export function validateDebtPricingBatch(batch: DebtPricing[]): {
     errors,
   };
 }
+
+export type DebtSeriesFieldErrors = Partial<
+  Record<
+    "series_name" | "structure" | "use_of_proceeds" | "cost_of_issuance",
+    string
+  >
+>;
+
+const MAX_LEN = 100;
+
+const tooLong = (label: string, value: string) =>
+  `${label} must be ${MAX_LEN} characters or fewer.`;
+
+export const validateDebtSeries = (
+  batch: DebtSeries,
+): { valid: boolean; errors: DebtSeriesFieldErrors } => {
+  const errors: DebtSeriesFieldErrors = {};
+
+  // Series Name (required + max)
+  const seriesName = (batch.series_name ?? "").trim();
+  if (!seriesName) errors.series_name = "Series Name is required.";
+  else if (seriesName.length > MAX_LEN)
+    errors.series_name = tooLong("Series Name", seriesName);
+
+  // Structure (required + max)
+  const structure = (batch.structure ?? "").trim();
+  if (!structure) errors.structure = "Structure is required.";
+  else if (structure.length > MAX_LEN)
+    errors.structure = tooLong("Structure", structure);
+
+  // Use of Proceeds (required + max)
+  const uop = (batch.use_of_proceeds ?? "").trim();
+  if (!uop) errors.use_of_proceeds = "Use of Proceeds is required.";
+  else if (uop.length > MAX_LEN)
+    errors.use_of_proceeds = tooLong("Use of Proceeds", uop);
+
+  // Cost of Issuance (numeric >= 0). Also enforce <=100 chars if you consider it “everything”.
+  // Note: batch.cost_of_issuance is a number (you parse it), so we validate numeric constraints here.
+  if (batch.cost_of_issuance == null || Number.isNaN(batch.cost_of_issuance)) {
+    errors.cost_of_issuance = "Cost of Issuance must be a number.";
+  } else if (batch.cost_of_issuance < 0) {
+    errors.cost_of_issuance = "Cost of Issuance must be 0 or greater.";
+  }
+
+  return { valid: Object.keys(errors).length === 0, errors };
+};

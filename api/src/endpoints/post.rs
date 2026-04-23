@@ -22,13 +22,21 @@ pub async fn post_series(
                 )
                 .context("ODBC connect failed")?;
 
-            let sql = "INSERT INTO TBL_DEBT_SERIES (SERIES_NAME, IS_TAX_EXEMPT, PAR_AMOUNT, PREMIUM, COST_OF_ISSUANCE) VALUES (?, ?, ?, ?, ?)";
+            let sql = "
+                INSERT INTO TBL_DEBT_SERIES 
+                    (
+                        SERIES_NAME, 
+                        IS_TAX_EXEMPT, 
+                        PAR_AMOUNT, 
+                        PREMIUM, 
+                        COST_OF_ISSUANCE
+                    ) VALUES (?, ?, ?, ?, ?)";
             let params = (
                 &payload.series_name.into_parameter(),
+                &payload.structure.into_parameter(),
                 &payload.is_tax_exempt.into_parameter(),
-                &payload.par_amount.into_parameter(), 
-                &payload.premium.into_parameter(),
                 &payload.cost_of_issuance.unwrap_or(0.0).into_parameter(),
+                &payload.use_of_proceeds.into_parameter(),
             );
             conn.execute(sql, params, None)
                 .context("Failed to post debt series.")?;
@@ -77,19 +85,18 @@ pub async fn post_debt_pricing(
                     PREMIUM_DISCOUNT
                 ) VALUES (?, ?, ?, ?, ?, ?, ?)";
             for post in payload.posts {
-            
-            let params = (
-                &post.series_id.into_parameter(),
-                &post.maturity_date.into_parameter(),
-                &post.amount.into_parameter(), 
-                &post.coupon_rate.into_parameter(),
-                &post.yield_rate.into_parameter(),
-                &post.price.into_parameter(),
-                &post.premium_discount.into_parameter(),
-            );
-            conn.execute(sql, params, None)
-                .context("Failed to post debt pricing.")?;
-        }
+                let params = (
+                    &post.series_id.into_parameter(),
+                    &post.maturity_date.into_parameter(),
+                    &post.amount.into_parameter(),
+                    &post.coupon_rate.into_parameter(),
+                    &post.yield_rate.into_parameter(),
+                    &post.price.into_parameter(),
+                    &post.premium_discount.into_parameter(),
+                );
+                conn.execute(sql, params, None)
+                    .context("Failed to post debt pricing.")?;
+            }
             Ok("Insert completed".to_string())
         }
     })
