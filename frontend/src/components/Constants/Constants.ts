@@ -51,3 +51,30 @@ export interface DebtService {
   interest?: number | null;
   created_at?: string | null;
 }
+
+export const STRUCTURE_OPTIONS = [
+  // Maturity structure
+  "Serial Bonds",
+  "Term Bonds",
+  "Serial + Term (Combination)",
+
+  // Interest / accretion structure
+  "Capital Appreciation (Zero-Coupon)",
+  "Current Interest",
+
+  // Rate mode
+  "Fixed Rate",
+  "Variable Rate (VRDO)",
+];
+
+export const USE_OF_PROCEEDS_OPTIONS = [
+  "New Money – Capital Project / Infrastructure",
+  "Refunding / Refinancing Outstanding Bonds (Current or Advance)",
+  "Working Capital / Operating Needs",
+  "Acquisition (Land / Facilities)",
+  "Construction / Renovation",
+  "Equipment",
+  "Debt Service Reserve Funding",
+  "Costs of Issuance",
+  "Other",
+];

@@ -47,17 +47,6 @@ const DebtMasterForm = () => {
     navigate("/");
   };
 
-  /* ✅ MEMOS (NO CHANGE NEEDED) */
-  const { parSum, premiumDiscountSum } = useMemo(() => {
-    return pricingFormData.reduce(
-      (acc, row) => {
-        acc.parSum += Number(row.amount || 0);
-        acc.premiumDiscountSum += Number(row.premium_discount || 0);
-        return acc;
-      },
-      { parSum: 0, premiumDiscountSum: 0 },
-    );
-  }, [pricingFormData]);
 
   return (
     <div className="m-6">
@@ -74,8 +63,6 @@ const DebtMasterForm = () => {
         <div className="mx-auto w-1/2">
           <DebtSeriesForm
             seriesId={seriesId}
-            parSum={parSum}
-            premiumDiscountSum={premiumDiscountSum}
             onChange={setSeriesFormData}
             onInitialLoad={setSeriesOriginal}
             onValidate={({ valid }) => setIsSeriesValid(valid)}

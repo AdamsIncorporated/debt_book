@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { DebtSeries } from "../Constants/Constants";
+import {
+  DebtSeries,
+  STRUCTURE_OPTIONS,
+  USE_OF_PROCEEDS_OPTIONS,
+} from "../Constants/Constants";
 import { fetchById } from "../utils/api";
 import { validateDebtSeries } from "../utils/validate";
-import { formatNumber } from "../utils/func";
-import { ReadOnlyField } from "../Widgets/ReadOnlyField";
 import DebtSeriesFormSkeleton from "../Widgets/DebtSeriesFormSkeleton";
 
 type Props = {
@@ -18,26 +20,24 @@ type Props = {
 type FormState = {
   id: number;
   seriesName: string;
+  structure: string;
   isTaxExempt: boolean;
-  parAmount: string;
-  premiumDiscount: string;
   costOfIssuance: string;
+  useOfProceeds: string;
 };
 
 const parseDebtSeries = (form: FormState): DebtSeries => ({
   id: form.id || null,
   series_name: form.seriesName,
+  structure: form.structure,
   is_tax_exempt: Number(form.isTaxExempt),
-  par_amount: Number(form.parAmount || 0),
-  premium_discount: Number(form.premiumDiscount || 0),
   cost_of_issuance: Number(form.costOfIssuance || 0),
+  use_of_proceeds: form.useOfProceeds,
   created_at: new Date().toISOString(),
 });
 
 const DebtSeriesForm: React.FC<Props> = ({
   seriesId,
-  parSum,
-  premiumDiscountSum,
   onChange,
   onInitialLoad,
   onValidate,
@@ -45,11 +45,10 @@ const DebtSeriesForm: React.FC<Props> = ({
   const [form, setForm] = useState<FormState>({
     id: 0,
     seriesName: "",
+    structure: "",
     isTaxExempt: false,
-    parAmount: parSum != null ? String(parSum) : "",
-    premiumDiscount:
-      premiumDiscountSum != null ? String(premiumDiscountSum) : "",
     costOfIssuance: "",
+    useOfProceeds: "",
   });
 
   const [loaded, setLoaded] = useState(false);
@@ -71,10 +70,10 @@ const DebtSeriesForm: React.FC<Props> = ({
         return {
           id: s?.id ?? 0,
           series_name: s?.series_name ?? "",
+          structure: s?.structure ?? "",
           is_tax_exempt: s?.is_tax_exempt ?? 0,
-          par_amount: s?.par_amount ?? 0,
-          premium_discount: s?.premium_discount ?? 0,
           cost_of_issuance: s?.cost_of_issuance ?? 0,
+          use_of_proceeds: s?.series_name ?? "",
         };
       },
     })
@@ -82,30 +81,16 @@ const DebtSeriesForm: React.FC<Props> = ({
         setForm({
           id: data.id,
           seriesName: data.series_name,
+          structure: data.structure,
           isTaxExempt: data.is_tax_exempt === 1,
-          parAmount: String(data.par_amount ?? ""),
-          premiumDiscount: String(data.premium_discount ?? ""),
           costOfIssuance: String(data.cost_of_issuance ?? ""),
+          useOfProceeds: data.use_of_proceeds,
         });
 
         onInitialLoad(data);
       })
       .finally(() => setLoaded(true));
   }, [seriesId, onInitialLoad]);
-
-  // ✅ KEEP parAmount & premium in sync with uploads
-  useEffect(() => {
-    setForm((prev) => {
-      if (!prev) return prev;
-
-      return {
-        ...prev,
-        parAmount: parSum != null ? String(parSum) : "",
-        premiumDiscount:
-          premiumDiscountSum != null ? String(premiumDiscountSum) : "",
-      };
-    });
-  }, [parSum, premiumDiscountSum]);
 
   // ✅ Unified change handler
   const updateForm = (next: FormState) => {
@@ -135,13 +120,41 @@ const DebtSeriesForm: React.FC<Props> = ({
              focus:outline-none focus:ring-2 focus:ring-blue-500"
       />
 
-      {/* ✅ Accrual‑driven display only */}
-      <ReadOnlyField label="Par Amount" value={formatNumber(form.parAmount)} />
-      <ReadOnlyField
-        label="Premium Discount"
-        value={formatNumber(form.premiumDiscount)}
-      />
+      <label className="text-sm font-medium text-gray-800">Structure</label>
+      <select
+        value={form.structure}
+        onChange={(e) => updateForm({ ...form, structure: e.target.value })}
+        className="w-full px-4 py-2 rounded-lg shadow-sm border border-gray-300
+             focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+      >
+        <option value="" disabled>
+          Select structure…
+        </option>
+        {STRUCTURE_OPTIONS.map((opt) => (
+          <option key={opt} value={opt}>
+            {opt}
+          </option>
+        ))}
+      </select>
 
+      <label className="text-sm font-medium text-gray-800">
+        Use Of Proceeds
+      </label>
+      <select
+        value={form.useOfProceeds}
+        onChange={(e) => updateForm({ ...form, useOfProceeds: e.target.value })}
+        className="w-full px-4 py-2 rounded-lg shadow-sm border border-gray-300
+             focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+      >
+        <option value="" disabled>
+          Select use of proceeds…
+        </option>
+        {USE_OF_PROCEEDS_OPTIONS.map((opt) => (
+          <option key={opt} value={opt}>
+            {opt}
+          </option>
+        ))}
+      </select>
       <label className="text-sm font-medium text-gray-800">
         Cost of Issuance
       </label>
@@ -154,7 +167,6 @@ const DebtSeriesForm: React.FC<Props> = ({
         className="w-full px-4 py-2 rounded-lg shadow-sm border border-gray-300
              focus:outline-none focus:ring-2 focus:ring-blue-500"
       />
-
       <label className="flex items-center gap-2 text-sm font-medium text-gray-800">
         <input
           type="checkbox"
