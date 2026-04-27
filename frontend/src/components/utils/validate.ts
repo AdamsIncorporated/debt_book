@@ -1,4 +1,6 @@
 import { DebtSeries, DebtPricing, DebtService } from "../Constants/Constants";
+import { get } from "../utils/func";
+import { GET_ALL_SERIES_NAMES } from "../Constants/Constants";
 
 function isValidExcelDate(value: unknown): boolean {
   console.log("Validating date value:", value);
@@ -174,40 +176,49 @@ export type DebtSeriesFieldErrors = Partial<
   >
 >;
 
-const MAX_LEN = 100;
-
-const tooLong = (label: string, value: string) =>
-  `${label} must be ${MAX_LEN} characters or fewer.`;
-
 export const validateDebtSeries = (
   batch: DebtSeries,
+  allSeriesNames: string[],
+  options?: {
+    mode: "create" | "edit";
+    originalName?: string;
+  },
 ): { valid: boolean; errors: DebtSeriesFieldErrors } => {
+  const MAX_LEN = 100;
+  const tooLong = (label: string, value: string) =>
+    `${label} must be ${MAX_LEN} characters or fewer.`;
   const errors: DebtSeriesFieldErrors = {};
-
-  // Series Name (required + max)
   const seriesName = (batch.series_name ?? "").trim();
-  if (!seriesName) errors.series_name = "Series Name is required.";
-  else if (seriesName.length > MAX_LEN)
+
+  // Required + length
+  if (!seriesName) {
+    errors.series_name = "Series Name is required.";
+  } else if (seriesName.length > MAX_LEN) {
     errors.series_name = tooLong("Series Name", seriesName);
+  }
 
-  // Structure (required + max)
-  const structure = (batch.structure ?? "").trim();
-  if (!structure) errors.structure = "Structure is required.";
-  else if (structure.length > MAX_LEN)
-    errors.structure = tooLong("Structure", structure);
+  // ✅ Duplicate check
+  if (!errors.series_name && seriesName) {
+    const normalized = seriesName.toLowerCase();
 
-  // Use of Proceeds (required + max)
-  const uop = (batch.use_of_proceeds ?? "").trim();
-  if (!uop) errors.use_of_proceeds = "Use of Proceeds is required.";
-  else if (uop.length > MAX_LEN)
-    errors.use_of_proceeds = tooLong("Use of Proceeds", uop);
+    const nameExists = allSeriesNames
+      .map((n) => n.trim().toLowerCase())
+      .includes(normalized);
 
-  // Cost of Issuance (numeric >= 0). Also enforce <=100 chars if you consider it “everything”.
-  // Note: batch.cost_of_issuance is a number (you parse it), so we validate numeric constraints here.
-  if (batch.cost_of_issuance == null || Number.isNaN(batch.cost_of_issuance)) {
-    errors.cost_of_issuance = "Cost of Issuance must be a number.";
-  } else if (batch.cost_of_issuance < 0) {
-    errors.cost_of_issuance = "Cost of Issuance must be 0 or greater.";
+    if (options?.mode === "create") {
+      // INSERT: any duplicate is invalid
+      if (nameExists) {
+        errors.series_name = "Series Name already exists.";
+      }
+    } else if (options?.mode === "edit") {
+      const originalNormalized = options.originalName?.trim().toLowerCase();
+
+      // EDIT:
+      // Allow same name if unchanged
+      if (nameExists && normalized !== originalNormalized) {
+        errors.series_name = "Series Name already exists.";
+      }
+    }
   }
 
   return { valid: Object.keys(errors).length === 0, errors };

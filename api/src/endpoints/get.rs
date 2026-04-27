@@ -20,23 +20,27 @@ pub async fn get_series_id_by_name(
     const SERIES_NAME_CAPACITY: usize = 100;
     const SQL_COMMAND: &str = "SELECT ID FROM TBL_DEBT_SERIES WHERE SERIES_NAME = ?";
 
-    let result: anyhow::Result<Option<i64>> = task::spawn_blocking({
+    // ✅ Fail fast if query param is missing
+    let series_name = match query.get("series_name") {
+        Some(v) => v.clone(),
+        None => {
+            return HttpResponse::BadRequest().body("series_name is required");
+        }
+    };
+
+    let result: anyhow::Result<Option<i64>> = actix_web::rt::task::spawn_blocking({
         let state = state.clone();
 
-        let mut buffer: [u8; 2] = [0u8, 100u8];
+        move || -> anyhow::Result<Option<i64>> {
+            // ✅ Correct buffer: 100 bytes long
+            let mut buffer = [0u8; SERIES_NAME_CAPACITY];
 
-        // Convert string to bytes
-        let series_name_bytes = query
-            .get("series_name")
-            .map(|s| s.as_bytes())
-            .unwrap_or_else(|| b"");
+            let bytes = series_name.as_bytes();
+            let len = bytes.len().min(SERIES_NAME_CAPACITY);
+            buffer[..len].copy_from_slice(&bytes[..len]);
 
-        // Truncate if bytes are too long
-        let len = series_name_bytes.len().min(SERIES_NAME_CAPACITY);
-        buffer[..len].copy_from_slice(&series_name_bytes[..len]);
-        let param = VarChar::from_buffer(buffer, Indicator::Length(len));
+            let param = VarChar::from_buffer(buffer, Indicator::Length(len));
 
-        move || {
             let conn = state
                 .env
                 .connect_with_connection_string(
@@ -45,19 +49,16 @@ pub async fn get_series_id_by_name(
                 )
                 .context("ODBC connect failed")?;
 
-            if let Some(mut cursor) = conn
-                .execute(SQL_COMMAND, (&param,), None)
-                .context("Failed to execute SQL query")?
-            {
+            if let Some(mut cursor) = conn.execute(SQL_COMMAND, (&param,), None)? {
                 if let Some(mut row) = cursor.next_row()? {
-                    let mut id_buf = 0i64;
-                    row.get_data(COLUMN_ID, &mut id_buf)?;
-                    Ok(Some(id_buf))
+                    let mut id = 0i64;
+                    row.get_data(COLUMN_ID, &mut id)?;
+                    Ok(Some(id))
                 } else {
-                    Ok(None) // No matching series found
+                    Ok(None)
                 }
             } else {
-                Ok(None) // Query execution did not return a cursor
+                Ok(None)
             }
         }
     })
@@ -65,7 +66,9 @@ pub async fn get_series_id_by_name(
     .unwrap_or_else(|e| Err(anyhow::anyhow!(e)));
 
     match result {
-        std::result::Result::Ok(Some(id)) => HttpResponse::Ok().json(id),
+        std::result::Result::Ok(Some(id)) => HttpResponse::Ok().json(serde_json::json!({
+            "id": id
+        })),
         std::result::Result::Ok(None) => HttpResponse::NotFound().body("Series not found"),
         Err(e) => {
             log::error!("Error fetching series ID: {:?}", e);

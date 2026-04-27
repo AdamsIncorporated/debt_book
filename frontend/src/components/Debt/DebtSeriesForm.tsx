@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import {
   DebtSeries,
   STRUCTURE_OPTIONS,
@@ -13,6 +13,7 @@ import {
   getSeriesIdByName,
   POST_DEBT_SERIES,
   PATCH_DEBT_SERIES,
+  GET_ALL_SERIES_NAMES,
 } from "../Constants/Constants";
 import { toast } from "react-toastify";
 
@@ -21,11 +22,20 @@ type FormState = {
   seriesName: string;
   structure: string;
   isTaxExempt: boolean;
-  costOfIssuance: string; // keep as string to enforce 100 chars
+  costOfIssuance: string;
   useOfProceeds: string;
 };
 
 const MAX_LEN = 100;
+
+const seriesNames = get(GET_ALL_SERIES_NAMES).then((res) => {
+  if (Array.isArray(res)) {
+    return res.map((item) => ({
+      series_name: item.series_name,
+    }));
+  }
+  return [];
+});
 
 const parseDebtSeries = (form: FormState): DebtSeries => {
   const rawCost = form.costOfIssuance.trim();
@@ -44,6 +54,7 @@ const parseDebtSeries = (form: FormState): DebtSeries => {
 
 const DebtSeriesForm: React.FC = () => {
   const { seriesId } = useParams();
+  const navigate = useNavigate();
 
   const [form, setForm] = useState<FormState>({
     id: 0,
@@ -155,7 +166,8 @@ const DebtSeriesForm: React.FC = () => {
     setSubmitError(null);
 
     const parsed = parseDebtSeries(form);
-    const v = validateDebtSeries(parsed);
+    const option = seriesId ? "edit" : "create";
+    const v = validateDebtSeries(parsed, seriesNames, option);
 
     if (!v.valid) {
       setFieldErrors(v.errors);
@@ -173,9 +185,7 @@ const DebtSeriesForm: React.FC = () => {
         post(POST_DEBT_SERIES, parsed);
         get(getSeriesIdByName(parsed.series_name)).then((res) => {
           const s = Array.isArray(res) ? res[0] : res;
-          console.log("Fetched series after creation:", s);
-          const newId = s?.id;
-          console.log("New series ID:", newId);
+          navigate(`/debt-pricing/${s.id}`);
         });
       } else {
         patch(PATCH_DEBT_SERIES, parsed);
