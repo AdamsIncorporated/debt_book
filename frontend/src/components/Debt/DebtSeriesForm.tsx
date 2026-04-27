@@ -15,42 +15,10 @@ import {
   PATCH_DEBT_SERIES,
   GET_ALL_SERIES_NAMES,
 } from "../Constants/Constants";
+import { parseDebtSeries, FormState } from "../utils/parseDebtSeries";
 import { toast } from "react-toastify";
 
-type FormState = {
-  id: number;
-  seriesName: string;
-  structure: string;
-  isTaxExempt: boolean;
-  costOfIssuance: string;
-  useOfProceeds: string;
-};
-
 const MAX_LEN = 100;
-
-const seriesNames = get(GET_ALL_SERIES_NAMES).then((res) => {
-  if (Array.isArray(res)) {
-    return res.map((item) => ({
-      series_name: item.series_name,
-    }));
-  }
-  return [];
-});
-
-const parseDebtSeries = (form: FormState): DebtSeries => {
-  const rawCost = form.costOfIssuance.trim();
-  const cost = rawCost === "" ? 0 : Number(rawCost);
-
-  return {
-    id: form.id || null,
-    series_name: form.seriesName,
-    structure: form.structure,
-    is_tax_exempt: Number(form.isTaxExempt),
-    cost_of_issuance: cost,
-    use_of_proceeds: form.useOfProceeds,
-    created_at: new Date().toISOString(),
-  };
-};
 
 const DebtSeriesForm: React.FC = () => {
   const { seriesId } = useParams();
@@ -68,11 +36,44 @@ const DebtSeriesForm: React.FC = () => {
   const [loaded, setLoaded] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const [seriesNames, setSeriesNames] = useState<string[]>([]);
+  const [seriesNamesLoaded, setSeriesNamesLoaded] = useState(false);
+
+  const [existingSeriesName, setExistingSeriesName] = useState("");
+
   // show a general message at top (optional)
   const [submitError, setSubmitError] = useState<string | null>(null);
 
   // field-level errors shown under each field
   const [fieldErrors, setFieldErrors] = useState<DebtSeriesFieldErrors>({});
+
+  // Load all series names for validation (to check duplicates)
+  useEffect(() => {
+    let mounted = true;
+
+    get(GET_ALL_SERIES_NAMES)
+      .then((res) => {
+        if (!mounted) return;
+
+        if (res.status === 200 && Array.isArray(res.data)) {
+          setSeriesNames(
+            res.data.map((item: any) => String(item.series_name ?? "").trim()),
+          );
+        } else {
+          setSeriesNames([]);
+        }
+      })
+      .catch(() => {
+        if (mounted) setSeriesNames([]);
+      })
+      .finally(() => {
+        if (mounted) setSeriesNamesLoaded(true);
+      });
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   // Load existing series
   useEffect(() => {
@@ -109,6 +110,7 @@ const DebtSeriesForm: React.FC = () => {
         });
 
         // clear any stale errors after loading
+        setExistingSeriesName(String(data.series_name ?? "").trim());
         setFieldErrors({});
         setSubmitError(null);
       })
@@ -166,46 +168,51 @@ const DebtSeriesForm: React.FC = () => {
     setSubmitError(null);
 
     const parsed = parseDebtSeries(form);
-    const option = seriesId ? "edit" : "create";
-    const v = validateDebtSeries(parsed, seriesNames, option);
+    const mode = seriesId ? "edit" : "create";
 
+    const v = validateDebtSeries(parsed, seriesNames, {
+      mode,
+      originalName: existingSeriesName,
+    });
+
+    // ✅ STOP HERE if invalid
     if (!v.valid) {
       setFieldErrors(v.errors);
       setSubmitError("Please fix the errors below.");
-      return;
+      return; // 🔑 critical
     }
 
-    // clear errors if valid
     setFieldErrors({});
+    setIsSubmitting(true);
 
     try {
-      setIsSubmitting(true);
-
       if (parsed.id == null) {
-        post(POST_DEBT_SERIES, parsed);
-        get(getSeriesIdByName(parsed.series_name)).then((res) => {
-          const s = Array.isArray(res) ? res[0] : res;
-          navigate(`/debt-pricing/${s.id}`);
-        });
+        // ✅ CREATE
+        await post(POST_DEBT_SERIES, parsed);
+
+        const res = await get(getSeriesIdByName(parsed.series_name));
+        const s = Array.isArray(res.data) ? res.data[0] : res.data;
+
+        navigate(`/debt-pricing/${s.id}`);
       } else {
-        patch(PATCH_DEBT_SERIES, parsed);
+        // ✅ UPDATE
+        await patch(PATCH_DEBT_SERIES, parsed);
       }
+
+      toast.success("Debt Series saved successfully!", {
+        position: "top-right",
+        autoClose: 7000,
+      });
     } catch (err: any) {
       toast.error("Something went wrong.", {
         position: "top-right",
         autoClose: 7000,
-        pauseOnHover: true,
-        closeOnClick: true,
       });
+
       setSubmitError(err?.message ?? "Something went wrong while submitting.");
+      return;
     } finally {
       setIsSubmitting(false);
-      toast.success("Debt Series saved successfully!", {
-        position: "top-right",
-        autoClose: 7000,
-        pauseOnHover: true,
-        closeOnClick: true,
-      });
     }
   };
 
@@ -339,7 +346,7 @@ const DebtSeriesForm: React.FC = () => {
       <div className="pt-2">
         <button
           type="submit"
-          disabled={isSubmitting}
+          disabled={isSubmitting || !seriesNamesLoaded}
           className={[
             "w-full px-4 py-2 rounded-lg font-medium shadow-sm transition",
             isSubmitting
