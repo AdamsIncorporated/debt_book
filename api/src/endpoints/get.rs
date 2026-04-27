@@ -552,7 +552,7 @@ pub async fn get_all_series_names(state: web::Data<AppState>) -> impl Responder 
                     if got_text {
                         // convert buffer (Vec<u8>) to String
                         let name = String::from_utf8(buffer).unwrap_or_else(|_| "".to_string()); // fallback for invalid UTF-8
-                        names.push(SeriesNameList { name });
+                        names.push(SeriesNameList { series_name: name });
                     }
                 }
             }

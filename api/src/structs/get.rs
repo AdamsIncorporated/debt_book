@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize)]
 pub struct SeriesNameList {
-    pub name: String,
+    pub series_name: String,
 }
 
 #[derive(Serialize, Deserialize)]

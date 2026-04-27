@@ -9,8 +9,8 @@ import {
   POST_DEBT_SERIES,
   PATCH_DEBT_SERIES,
 } from "../Constants/Constants";
-import { useSeriesNames } from "../hooks/useSeriesNames";
 import { useDebtSeriesLoader } from "../hooks/useDebtSeriesLoader";
+import { useAllSeriesNames } from "../hooks/useAllSeriesNames";
 import { DebtSeriesFormFields } from "../components/DebtSeries/DebtSeriesFormFields";
 import DebtSeriesFormSkeleton from "../components/Widgets/DebtSeriesFormSkeleton";
 import { FormActionBar } from "../components/Widgets/FormActionBar";
@@ -21,7 +21,7 @@ const DebtSeriesForm = () => {
   const navigate = useNavigate();
 
   const [fieldErrors, setFieldErrors] = React.useState<any>({});
-  const { seriesNames, seriesNamesLoaded } = useSeriesNames();
+  const { seriesNames, seriesNamesLoaded } = useAllSeriesNames();
   const { form, setForm, existingSeriesName, loaded } =
     useDebtSeriesLoader(seriesId);
 
@@ -81,7 +81,7 @@ const DebtSeriesForm = () => {
   };
 
   return (
-    <form onSubmit={handleSubmit}>
+    <form className="p-6 rounded-lg bg-white" onSubmit={handleSubmit}>
       <div className=""></div>
       <DebtSeriesFormFields
         form={form}

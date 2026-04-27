@@ -211,27 +211,21 @@ export const validateDebtSeries = (
     errors.use_of_proceeds = tooLong("Use of Proceeds", useOfProceeds);
   }
 
-  // ✅ Duplicate check
+  // ✅ Duplicate check (simple + correct)
   if (!errors.series_name && seriesName) {
     const normalized = seriesName.toLowerCase();
 
-    const nameExists = allSeriesNames
-      .map((n) => n.trim().toLowerCase())
-      .includes(normalized);
+    let comparisonNames = allSeriesNames.map((n) => n.trim().toLowerCase());
 
-    if (options?.mode === "create") {
-      // INSERT: any duplicate is invalid
-      if (nameExists) {
-        errors.series_name = "Series Name already exists.";
-      }
-    } else if (options?.mode === "edit") {
-      const originalNormalized = options.originalName?.trim().toLowerCase();
+    if (options?.mode === "edit" && options.originalName) {
+      const originalNormalized = options.originalName.trim().toLowerCase();
 
-      // EDIT:
-      // Allow same name if unchanged
-      if (nameExists && normalized !== originalNormalized) {
-        errors.series_name = "Series Name already exists.";
-      }
+      // Remove the original name so it can never collide with itself
+      comparisonNames = comparisonNames.filter((n) => n !== originalNormalized);
+    }
+
+    if (comparisonNames.includes(normalized)) {
+      errors.series_name = "Series Name already exists.";
     }
   }
 
