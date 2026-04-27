@@ -13,7 +13,8 @@ import { useSeriesNames } from "../hooks/useSeriesNames";
 import { useDebtSeriesLoader } from "../hooks/useDebtSeriesLoader";
 import { DebtSeriesFormFields } from "../components/DebtSeries/DebtSeriesFormFields";
 import DebtSeriesFormSkeleton from "../components/Widgets/DebtSeriesFormSkeleton";
-import { FormSubmitButton } from "../components/Widgets/FormSubmitButton";
+import { FormActionBar } from "../components/Widgets/FormActionBar";
+import { toast } from "react-toastify";
 
 const DebtSeriesForm = () => {
   const { seriesId } = useParams();
@@ -28,7 +29,7 @@ const DebtSeriesForm = () => {
 
   if (!loaded || !seriesNamesLoaded || !form) return <DebtSeriesFormSkeleton />;
 
-  const handleSubmit = async (e: any) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     const parsed = parseDebtSeries(form);
@@ -42,23 +43,56 @@ const DebtSeriesForm = () => {
       return;
     }
 
-    if (parsed.id == null) {
-      await post(POST_DEBT_SERIES, parsed);
-      const res = await get(getSeriesIdByName(parsed.series_name));
-      navigate(`/debt-pricing/${res.data.id}`);
-    } else {
-      await patch(PATCH_DEBT_SERIES, parsed);
+    try {
+      let seriesIdToNavigate: number | null = null;
+
+      if (parsed.id == null) {
+        // CREATE
+        await post(POST_DEBT_SERIES, parsed);
+
+        const res = await get(getSeriesIdByName(parsed.series_name));
+
+        if (!res?.data?.id) {
+          throw new Error("Failed to resolve newly created debt series ID");
+        }
+
+        seriesIdToNavigate = res.data.id;
+
+        toast.success("Debt series created successfully");
+      } else {
+        // UPDATE
+        await patch(PATCH_DEBT_SERIES, parsed);
+
+        seriesIdToNavigate = parsed.id;
+
+        toast.success("Debt series updated successfully");
+      }
+
+      navigate(`/debt-pricing/${seriesIdToNavigate}`);
+    } catch (err: any) {
+      console.error(err);
+
+      toast.error(
+        err?.response?.data?.message ??
+          err?.message ??
+          "Something went wrong while saving the debt series",
+      );
     }
   };
 
   return (
     <form onSubmit={handleSubmit}>
+      <div className=""></div>
       <DebtSeriesFormFields
         form={form}
         updateForm={setForm}
         fieldErrors={fieldErrors}
       />
-      <FormSubmitButton />
+      <FormActionBar
+        seriesId={seriesId}
+        onSkip={() => navigate(`/debt-pricing/${seriesId}`)}
+        submitLabel={seriesId ? "Save Changes" : "Create Series"}
+      />
     </form>
   );
 };

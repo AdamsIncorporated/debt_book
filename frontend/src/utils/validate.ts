@@ -189,12 +189,26 @@ export const validateDebtSeries = (
     `${label} must be ${MAX_LEN} characters or fewer.`;
   const errors: DebtSeriesFieldErrors = {};
   const seriesName = (batch.series_name ?? "").trim();
+  const structure = (batch.structure ?? "").trim();
+  const useOfProceeds = (batch.use_of_proceeds ?? "").trim();
 
   // Required + length
   if (!seriesName) {
     errors.series_name = "Series Name is required.";
   } else if (seriesName.length > MAX_LEN) {
     errors.series_name = tooLong("Series Name", seriesName);
+  }
+
+  if (!structure) {
+    errors.structure = "Structure is required.";
+  } else if (structure.length > MAX_LEN) {
+    errors.structure = tooLong("Structure", structure);
+  }
+
+  if (!useOfProceeds) {
+    errors.use_of_proceeds = "Use of Proceeds is required.";
+  } else if (useOfProceeds.length > MAX_LEN) {
+    errors.use_of_proceeds = tooLong("Use of Proceeds", useOfProceeds);
   }
 
   // ✅ Duplicate check
