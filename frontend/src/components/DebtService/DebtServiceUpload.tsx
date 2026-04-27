@@ -12,7 +12,7 @@ import {
 import { DataTable } from "../Widgets/DataTable";
 import { UploadBar } from "../Widgets/UploadBar";
 import { validateDebtServiceBatch } from "../../utils/validate";
-import { fetchById } from "../../utils/api";
+import { customFetch } from "../../utils/api";
 import { SkeletonTable } from "../Widgets/SkeletonTable";
 import { useParams } from "react-router-dom";
 
@@ -130,7 +130,7 @@ const DebtServiceUpload: React.FC = () => {
 
       setIsLoading(true);
       try {
-        const data = await fetchById<DebtService[]>({
+        const data = await customFetch<DebtService[]>({
           endpoint: getSeriesDebtServiceById(seriesId),
           entityName: "Debt Series Service Schedule",
           mapResponse: (raw) => raw,

@@ -1,6 +1,6 @@
 // hooks/useDebtSeriesLoader.ts
 import { useEffect, useState } from "react";
-import { fetchById } from "../utils/api";
+import { customFetch } from "../utils/api";
 
 const MAX_LEN = 100;
 const EMPTY_DEBT_SERIES_FORM = {
@@ -25,7 +25,7 @@ export const useDebtSeriesLoader = (seriesId?: string) => {
 
     setLoaded(false);
 
-    fetchById({
+    customFetch({
       endpoint: `/api/get/get_debt_series_by_id/${seriesId}`,
       entityName: "Debt Series",
       mapResponse: (raw: any) => {

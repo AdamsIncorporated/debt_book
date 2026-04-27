@@ -1,4 +1,5 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import { useParams } from "react-router-dom";
 import { useState, useCallback } from "react";
 import { useDebtPricingColumns } from "../../hooks/useDebtPricingColumns";
@@ -9,10 +10,13 @@ import { DataTable } from "../Widgets/DataTable";
 import { UploadBar } from "../Widgets/UploadBar";
 import { SkeletonTable } from "../Widgets/SkeletonTable";
 import { UploadErrorsPanel } from "./UploadErrorsPanel";
+import { FormActionBar } from "../Widgets/FormActionBar";
+import CsvUploadRules from "../Widgets/CsvUploadRules";
 
 const DebtPricingUpload: React.FC = () => {
   const { seriesIdParam } = useParams<{ seriesIdParam?: string }>();
   const seriesId = seriesIdParam ? Number(seriesIdParam) : undefined;
+  const navigate = useNavigate();
 
   const [error, setError] = useState<string[] | null>(null);
 
@@ -34,11 +38,16 @@ const DebtPricingUpload: React.FC = () => {
     );
   }, [columns, rows]);
 
+  const handleSubmit = () => {
+    navigate(`/debt-service/${seriesIdParam}`);
+  };
+
   return (
     <div className="space-y-8">
       <h3 className="text-gray-700 text-3xl font-semibold">
         Debt Pricing Upload
       </h3>
+      <CsvUploadRules />
       <div className="mt-2 w-full h-1 bg-gray-300 rounded-full" />
 
       <UploadBar onUpload={handleUpload} onDownload={handleDownload} />
@@ -52,7 +61,16 @@ const DebtPricingUpload: React.FC = () => {
           No data loaded. Please upload a file to get started.
         </div>
       ) : (
-        <DataTable columns={columns as any} rows={rows} />
+        <>
+          <DataTable columns={columns as any} rows={rows} />
+          <FormActionBar
+            seriesId={seriesIdParam}
+            onSkip={() => {
+              navigate(`/debt-service/${seriesIdParam}`);
+            }}
+            submitLabel="Save Pricing"
+          />
+        </>
       )}
     </div>
   );

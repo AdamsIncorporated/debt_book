@@ -1,14 +1,14 @@
-type FetchByIdOptions<T> = {
+type customFetchOptions<T> = {
   endpoint: string; // FULL endpoint, already includes any params
   entityName: string; // used for logging
   mapResponse: (raw: any) => T;
 };
 
-export async function fetchById<T>({
+export async function customFetch<T>({
   endpoint,
   entityName,
   mapResponse,
-}: FetchByIdOptions<T>): Promise<T> {
+}: customFetchOptions<T>): Promise<T> {
   console.groupCollapsed(`📡 [API] Fetch ${entityName}`);
   console.info("➡️ Request URL:", endpoint);
 

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { fetchById } from "../utils/api";
+import { customFetch } from "../utils/api";
 import { DebtPricing, getSeriesPricingById } from "../Constants/Constants";
 
 export const useDebtPricingLoader = (seriesId?: number) => {
@@ -17,7 +17,7 @@ export const useDebtPricingLoader = (seriesId?: number) => {
 
       setIsLoading(true);
       try {
-        const data = await fetchById<DebtPricing[]>({
+        const data = await customFetch<DebtPricing[]>({
           endpoint: getSeriesPricingById(seriesId),
           entityName: "Debt Series Pricing",
           mapResponse: (raw) => raw,
