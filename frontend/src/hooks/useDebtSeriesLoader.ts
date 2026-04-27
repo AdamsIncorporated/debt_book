@@ -3,6 +3,13 @@ import { useEffect, useState } from "react";
 import { fetchById } from "../utils/api";
 
 const MAX_LEN = 100;
+const EMPTY_DEBT_SERIES_FORM = {
+  seriesName: "",
+  structure: "",
+  isTaxExempt: false,
+  costOfIssuance: "",
+  useOfProceeds: "",
+};
 
 export const useDebtSeriesLoader = (seriesId?: string) => {
   const [form, setForm] = useState<any>(null);
@@ -11,6 +18,7 @@ export const useDebtSeriesLoader = (seriesId?: string) => {
 
   useEffect(() => {
     if (!seriesId) {
+      setForm(EMPTY_DEBT_SERIES_FORM);
       setLoaded(true);
       return;
     }

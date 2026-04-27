@@ -13,14 +13,18 @@ import { useSeriesNames } from "../hooks/useSeriesNames";
 import { useDebtSeriesLoader } from "../hooks/useDebtSeriesLoader";
 import { DebtSeriesFormFields } from "../components/DebtSeries/DebtSeriesFormFields";
 import DebtSeriesFormSkeleton from "../components/Widgets/DebtSeriesFormSkeleton";
+import { FormSubmitButton } from "../components/Widgets/FormSubmitButton";
 
 const DebtSeriesForm = () => {
   const { seriesId } = useParams();
   const navigate = useNavigate();
 
+  const [fieldErrors, setFieldErrors] = React.useState<any>({});
   const { seriesNames, seriesNamesLoaded } = useSeriesNames();
   const { form, setForm, existingSeriesName, loaded } =
     useDebtSeriesLoader(seriesId);
+
+  console.log("form", form);
 
   if (!loaded || !seriesNamesLoaded || !form) return <DebtSeriesFormSkeleton />;
 
@@ -33,7 +37,10 @@ const DebtSeriesForm = () => {
       originalName: existingSeriesName,
     });
 
-    if (!v.valid) return;
+    if (!v.valid) {
+      setFieldErrors(v.errors);
+      return;
+    }
 
     if (parsed.id == null) {
       await post(POST_DEBT_SERIES, parsed);
@@ -46,8 +53,12 @@ const DebtSeriesForm = () => {
 
   return (
     <form onSubmit={handleSubmit}>
-      <DebtSeriesFormFields form={form} updateForm={setForm} fieldErrors={{}} />
-      <button type="submit">Submit</button>
+      <DebtSeriesFormFields
+        form={form}
+        updateForm={setForm}
+        fieldErrors={fieldErrors}
+      />
+      <FormSubmitButton />
     </form>
   );
 };

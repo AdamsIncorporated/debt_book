@@ -5,7 +5,7 @@ import { GET_ALL_SERIES_NAMES } from "../Constants/Constants";
 
 export const useSeriesNames = () => {
   const [seriesNames, setSeriesNames] = useState<string[]>([]);
-  const [loaded, setLoaded] = useState(false);
+  const [seriesNamesLoaded, setSeriesNamesLoaded] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -13,18 +13,26 @@ export const useSeriesNames = () => {
     get(GET_ALL_SERIES_NAMES)
       .then((res) => {
         if (!mounted) return;
+
         if (res.status === 200 && Array.isArray(res.data)) {
           setSeriesNames(
             res.data.map((x: any) => String(x.series_name ?? "").trim()),
           );
+        } else {
+          setSeriesNames([]); // ✅ empty is valid
         }
       })
-      .finally(() => mounted && setLoaded(true));
+      .catch(() => {
+        if (mounted) setSeriesNames([]); // ✅ still valid
+      })
+      .finally(() => {
+        if (mounted) setSeriesNamesLoaded(true); // ✅ key line
+      });
 
     return () => {
       mounted = false;
     };
   }, []);
 
-  return { seriesNames, seriesNamesLoaded: loaded };
+  return { seriesNames, seriesNamesLoaded };
 };
