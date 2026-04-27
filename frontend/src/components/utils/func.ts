@@ -4,7 +4,7 @@ import {
   PATCH_DEBT_SERVICE,
   POST_DEBT_PRICING,
   POST_DEBT_SERVICE,
-  GET_SERIES_ID_BY_NAME,
+  getSeriesIdByName,
 } from "../Constants/Constants";
 import ExcelJS from "exceljs";
 
@@ -149,6 +149,27 @@ export async function del(url: string, body?: any) {
     return { status: res.status, data };
   } catch (err) {
     console.error("DELETE ERROR →", err);
+    throw err;
+  }
+}
+
+export async function get(url: string) {
+  console.log("GET →", url);
+
+  try {
+    const res = await fetch(url, {
+      method: "GET",
+      headers: { "Content-Type": "application/json" },
+    });
+
+    console.log("GET STATUS →", res.status);
+
+    const data = await res.json().catch(() => null);
+    console.log("GET RESPONSE →", data);
+
+    return { status: res.status, data };
+  } catch (err) {
+    console.error("GET ERROR →", err);
     throw err;
   }
 }

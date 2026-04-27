@@ -1,5 +1,6 @@
 export const GET_ALL_SERIES = "/api/get/get_all_series";
-export const GET_SERIES_ID_BY_NAME = "/api/get/get_series_id_by_name";
+export const getSeriesIdByName = (seriesName: string) =>
+  `/api/get/get_series_id_by_name?series_name=${encodeURIComponent(seriesName)}`;
 export const GET_SERIES_BY_ID = "/api/get/get_debt_series_by_id/";
 export const getSeriesPricingById = (id: number) =>
   `/api/get/get_debt_series_pricing_by_id/${id}`;

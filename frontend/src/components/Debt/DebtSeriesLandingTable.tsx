@@ -79,7 +79,7 @@ const DebtSeriesLandingTable: React.FC = () => {
 
   return (
     <div className="mx-auto w-3/4 py-10">
-      <div className="overflow-hidden rounded-lg border border-gray-200 shadow-sm">
+      <div className="overflow-y-auto rounded-lg border border-gray-200 shadow-sm">
         <table className="w-full text-sm">
           <thead className="bg-gray-200 text-gray-700">
             <tr>
@@ -105,7 +105,11 @@ const DebtSeriesLandingTable: React.FC = () => {
                   {formatCurrency(s.cost_of_issuance ?? 0)}
                 </td>
                 <td className="px-4 py-3 font-medium">{s.use_of_proceeds}</td>
-                <td className="px-4 py-3">{s.created_at ?? "—"}</td>
+                <td className="px-4 py-3">
+                  {s.created_at
+                    ? new Date(s.created_at).toLocaleDateString()
+                    : "—"}
+                </td>
                 <td className="px-4 py-3 text-center">
                   <button
                     className="px-4 py-2 shadow hover:bg-gray-200 rounded-md transition hover:cursor-pointer"

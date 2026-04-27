@@ -3,6 +3,7 @@ use crate::structs::get::DebtPricing;
 use crate::structs::get::DebtSeries;
 use crate::structs::get::DebtService;
 use crate::structs::get::SeriesNameList;
+use actix_web::http::header::TryIntoHeaderValue;
 use actix_web::{HttpResponse, Responder, get, web};
 use anyhow::{Context, Ok, Result};
 use odbc_api::buffers::Indicator;
@@ -22,7 +23,7 @@ pub async fn get_series_id_by_name(
     let result: anyhow::Result<Option<i64>> = task::spawn_blocking({
         let state = state.clone();
 
-        let mut buffer = [0u8, SERIES_NAME_CAPACITY.try_into().unwrap()];
+        let mut buffer: [u8; 2] = [0u8, 100u8];
 
         // Convert string to bytes
         let series_name_bytes = query

@@ -8,8 +8,12 @@ import {
 import { fetchById } from "../utils/api";
 import DebtSeriesFormSkeleton from "../Widgets/DebtSeriesFormSkeleton";
 import { validateDebtSeries, DebtSeriesFieldErrors } from "../utils/validate";
-import { post, patch } from "../utils/func";
-import { POST_DEBT_SERIES, PATCH_DEBT_SERIES } from "../Constants/Constants";
+import { post, patch, get } from "../utils/func";
+import {
+  getSeriesIdByName,
+  POST_DEBT_SERIES,
+  PATCH_DEBT_SERIES,
+} from "../Constants/Constants";
 import { toast } from "react-toastify";
 
 type FormState = {
@@ -88,7 +92,7 @@ const DebtSeriesForm: React.FC = () => {
           id: data.id,
           seriesName: String(data.series_name ?? "").slice(0, MAX_LEN),
           structure: String(data.structure ?? "").slice(0, MAX_LEN),
-          isTaxExempt: data.is_tax_exempt === 1,
+          isTaxExempt: !!data.is_tax_exempt,
           costOfIssuance: String(data.cost_of_issuance ?? "").slice(0, MAX_LEN),
           useOfProceeds: String(data.use_of_proceeds ?? "").slice(0, MAX_LEN),
         });
@@ -167,6 +171,12 @@ const DebtSeriesForm: React.FC = () => {
 
       if (parsed.id == null) {
         post(POST_DEBT_SERIES, parsed);
+        get(getSeriesIdByName(parsed.series_name)).then((res) => {
+          const s = Array.isArray(res) ? res[0] : res;
+          console.log("Fetched series after creation:", s);
+          const newId = s?.id;
+          console.log("New series ID:", newId);
+        });
       } else {
         patch(PATCH_DEBT_SERIES, parsed);
       }
