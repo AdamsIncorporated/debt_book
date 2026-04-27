@@ -33,7 +33,7 @@ export const FormActionBar = ({
               bg-white px-4 py-2
               text-sm font-medium text-gray-700
               shadow-sm transition
-              hover:bg-gray-100
+              hover:bg-gray-100 hover:cursor-pointer
               focus:outline-none focus:ring-2 focus:ring-gray-200
             "
           >

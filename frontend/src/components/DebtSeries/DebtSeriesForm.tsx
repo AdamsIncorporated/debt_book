@@ -1,19 +1,19 @@
 // pages/DebtSeriesForm.tsx
 import React from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { parseDebtSeries } from "../utils/parseDebtSeries";
-import { validateDebtSeries } from "../utils/validate";
-import { post, patch, get } from "../utils/func";
+import { parseDebtSeries } from "../../utils/parseDebtSeries";
+import { validateDebtSeries } from "../../utils/validate";
+import { post, patch, get } from "../../utils/func";
 import {
   getSeriesIdByName,
   POST_DEBT_SERIES,
   PATCH_DEBT_SERIES,
-} from "../Constants/Constants";
-import { useDebtSeriesLoader } from "../hooks/useDebtSeriesLoader";
-import { useAllSeriesNames } from "../hooks/useAllSeriesNames";
-import { DebtSeriesFormFields } from "../components/DebtSeries/DebtSeriesFormFields";
-import DebtSeriesFormSkeleton from "../components/Widgets/DebtSeriesFormSkeleton";
-import { FormActionBar } from "../components/Widgets/FormActionBar";
+} from "../../Constants/Constants";
+import { useDebtSeriesLoader } from "../../hooks/useDebtSeriesLoader";
+import { useAllSeriesNames } from "../../hooks/useAllSeriesNames";
+import { DebtSeriesFormFields } from "../../components/DebtSeries/DebtSeriesFormFields";
+import DebtSeriesFormSkeleton from "../../components/Widgets/DebtSeriesFormSkeleton";
+import { FormActionBar } from "../../components/Widgets/FormActionBar";
 import { toast } from "react-toastify";
 
 const DebtSeriesForm = () => {
