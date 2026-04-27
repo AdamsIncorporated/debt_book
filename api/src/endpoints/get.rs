@@ -3,7 +3,6 @@ use crate::structs::get::DebtPricing;
 use crate::structs::get::DebtSeries;
 use crate::structs::get::DebtService;
 use crate::structs::get::SeriesNameList;
-use actix_web::http::header::TryIntoHeaderValue;
 use actix_web::{HttpResponse, Responder, get, web};
 use anyhow::{Context, Ok, Result};
 use odbc_api::buffers::Indicator;
@@ -532,8 +531,8 @@ pub async fn get_debt_series_pricing_by_id(
     }
 }
 
-#[get("/get_series_names")]
-pub async fn get_series_names(state: web::Data<AppState>) -> impl Responder {
+#[get("/get_all_series_names")]
+pub async fn get_all_series_names(state: web::Data<AppState>) -> impl Responder {
     let result: Result<Vec<SeriesNameList>> = task::spawn_blocking({
         let state = state.clone();
         move || {

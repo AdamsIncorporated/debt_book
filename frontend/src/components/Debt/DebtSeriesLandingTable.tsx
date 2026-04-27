@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { GET_ALL_SERIES } from "../Constants/Constants";
-import { DebtSeries } from "../Constants/Constants";
+import { GET_ALL_SERIES } from "../../Constants/Constants";
+import { DebtSeries } from "../../Constants/Constants";
 import React from "react";
 import { useNavigate } from "react-router-dom";
 

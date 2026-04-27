@@ -1,8 +1,8 @@
 import { Routes, Route } from "react-router-dom";
-import DebtSeriesLandingTable from "./DebtSeriesLandingTable";
-import DebtSeriesForm from "./DebtSeriesForm";
-import DebtPricingUpload from "./DebtPricingUpload";
-import DebtServiceUpload from "./DebtPricingUpload";
+import DebtSeriesLandingTable from "./components/Debt/DebtSeriesLandingTable";
+import DebtSeriesForm from "./pages/DebtSeriesForm";
+import DebtPricingUpload from "./components/Debt/DebtPricingUpload";
+import DebtServiceUpload from "./components/Debt/DebtPricingUpload";
 import React from "react";
 
 export default function AppRoutes() {

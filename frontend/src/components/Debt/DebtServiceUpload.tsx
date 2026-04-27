@@ -4,12 +4,15 @@ import {
   downloadExcelTemplate,
   excelDateToJSONString,
   excelNumberToJSONNumber,
-} from "../utils/func";
-import { DebtService, getSeriesDebtServiceById } from "../Constants/Constants";
+} from "../../utils/func";
+import {
+  DebtService,
+  getSeriesDebtServiceById,
+} from "../../Constants/Constants";
 import { DataTable } from "../Widgets/DataTable";
 import { UploadBar } from "../Widgets/UploadBar";
-import { validateDebtServiceBatch } from "../utils/validate";
-import { fetchById } from "../utils/api";
+import { validateDebtServiceBatch } from "../../utils/validate";
+import { fetchById } from "../../utils/api";
 import { SkeletonTable } from "../Widgets/SkeletonTable";
 import { useParams } from "react-router-dom";
 

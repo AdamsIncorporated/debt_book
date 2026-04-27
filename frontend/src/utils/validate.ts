@@ -1,5 +1,5 @@
 import { DebtSeries, DebtPricing, DebtService } from "../Constants/Constants";
-import { get } from "../utils/func";
+import { get } from "./func";
 import { GET_ALL_SERIES_NAMES } from "../Constants/Constants";
 
 function isValidExcelDate(value: unknown): boolean {

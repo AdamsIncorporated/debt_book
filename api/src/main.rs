@@ -6,7 +6,6 @@ use tokio::task;
 pub mod config;
 pub mod endpoints;
 pub mod structs;
-pub mod tests;
 use crate::config::{AppState, Config};
 use endpoints::scopes::{delete_scope, get_scope, patch_scope, post_scope, test_connection};
 

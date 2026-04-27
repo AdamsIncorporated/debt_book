@@ -1,5 +1,5 @@
 import React from "react";
-import { formatNumber } from "../utils/func";
+import { formatNumber } from "../../utils/func";
 
 export type Column<T> = {
   label: string;
