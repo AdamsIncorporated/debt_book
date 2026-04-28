@@ -18,6 +18,7 @@ import {
   DELETE_DEBT_PRICING,
 } from "../../Constants/Constants";
 import { submitWithDiff } from "../../utils/submitWithDiff";
+import { toast } from "react-toastify";
 
 const DebtPricingUpload: React.FC = () => {
   const { seriesIdParam } = useParams<{ seriesIdParam?: string }>();
@@ -55,14 +56,13 @@ const DebtPricingUpload: React.FC = () => {
         currentRows: rows,
         idKey: "id",
       });
-      
+      toast.success("Debt series updated successfully");
       navigate(`/debt-service/${seriesIdParam}`);
     } catch (err) {
       console.error("Submit failed", err);
       setError(["An unexpected error occurred during submission."]);
       return;
     }
-
   };
 
   return (
@@ -84,7 +84,13 @@ const DebtPricingUpload: React.FC = () => {
           No data loaded. Please upload a file to get started.
         </div>
       ) : (
-        <>
+        <form
+          className="m-5"
+          onSubmit={(e) => {
+            e.preventDefault();
+            handleSubmit();
+          }}
+        >
           <DataTable columns={columns as any} rows={rows} />
           <FormActionBar
             seriesId={seriesIdParam}
@@ -93,7 +99,7 @@ const DebtPricingUpload: React.FC = () => {
             }}
             submitLabel="Save Pricing"
           />
-        </>
+        </form>
       )}
     </div>
   );

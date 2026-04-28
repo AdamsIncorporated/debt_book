@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { get } from "../utils/func";
+import { get } from "../utils/api";
 import { GET_ALL_SERIES_NAMES } from "../Constants/Constants";
 
 export const useAllSeriesNames = () => {

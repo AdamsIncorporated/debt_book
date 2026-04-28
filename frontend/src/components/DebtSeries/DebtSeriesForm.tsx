@@ -3,7 +3,7 @@ import React from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { parseDebtSeries } from "../../utils/parseDebtSeries";
 import { validateDebtSeries } from "../../utils/validate";
-import { post, patch, get } from "../../utils/func";
+import { post, patch, get } from "../../utils/api";
 import {
   getSeriesIdByName,
   POST_DEBT_SERIES,
