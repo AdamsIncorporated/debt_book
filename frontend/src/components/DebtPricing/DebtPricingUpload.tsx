@@ -48,6 +48,7 @@ const DebtPricingUpload: React.FC = () => {
 
   const handleSubmit = async () => {
     try {
+      console.log("Submitting with diff", { originalRows, rows });
       await submitWithDiff({
         postUrl: POST_DEBT_PRICING,
         patchUrl: PATCH_DEBT_PRICING,

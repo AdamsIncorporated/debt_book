@@ -65,8 +65,10 @@ export const useDebtPricingUpload = ({
         );
         if (!relevantCells.some((v: any) => !isBlank(v))) continue;
 
+        // ✅ start object with series_id
         const item: any = { series_id: seriesId };
 
+        // ✅ parse spreadsheet-backed columns
         for (let c = 0; c < columns.length; c++) {
           const col = columns[c];
           const raw = row[c + 1];
@@ -82,6 +84,10 @@ export const useDebtPricingUpload = ({
               )
             : raw;
         }
+
+        // ✅ CRITICAL: force series_id AFTER parsing
+        // prevents accidental overwrite by column loop
+        item.series_id = seriesId;
 
         parsed.push(item);
       }
