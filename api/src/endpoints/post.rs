@@ -1,5 +1,5 @@
 use crate::AppState;
-use crate::structs::post::{DebtPricingPosts, DebtSeriesPost, DebtServicePosts};
+use crate::structs::post::{DebtPricingPost, DebtSeriesPost, DebtServicePost};
 use actix_web::{HttpResponse, Responder, post, web};
 use anyhow::{Context, Ok};
 use odbc_api::IntoParameter;
@@ -59,9 +59,8 @@ pub async fn post_series(
 #[post("/post_debt_pricing")]
 pub async fn post_debt_pricing(
     state: web::Data<AppState>,
-    payload: web::Json<DebtPricingPosts>,
+    payload: web::Json<DebtPricingPost>,
 ) -> impl Responder {
-    let payload = payload.into_inner();
     let result: anyhow::Result<String> = task::spawn_blocking({
         let state = state.clone();
         move || {
@@ -84,19 +83,17 @@ pub async fn post_debt_pricing(
                     PRICE, 
                     PREMIUM_DISCOUNT
                 ) VALUES (?, ?, ?, ?, ?, ?, ?)";
-            for post in payload.posts {
-                let params = (
-                    &post.series_id.into_parameter(),
-                    &post.maturity_date.into_parameter(),
-                    &post.amount.into_parameter(),
-                    &post.coupon_rate.into_parameter(),
-                    &post.yield_rate.into_parameter(),
-                    &post.price.into_parameter(),
-                    &post.premium_discount.into_parameter(),
-                );
-                conn.execute(sql, params, None)
-                    .context("Failed to post debt pricing.")?;
-            }
+            let params = (
+                &payload.series_id.into_parameter(),
+                &payload.maturity_date.clone().into_parameter(),
+                &payload.amount.into_parameter(),
+                &payload.coupon_rate.into_parameter(),
+                &payload.yield_rate.into_parameter(),
+                &payload.price.into_parameter(),
+                &payload.premium_discount.into_parameter(),
+            );
+            conn.execute(sql, params, None)
+                .context("Failed to post debt pricing.")?;
             Ok("Insert completed".to_string())
         }
     })
@@ -115,9 +112,8 @@ pub async fn post_debt_pricing(
 #[post("/post_debt_service")]
 pub async fn post_debt_service(
     state: web::Data<AppState>,
-    payload: web::Json<DebtServicePosts>,
+    payload: web::Json<DebtServicePost>,
 ) -> impl Responder {
-    let payload = payload.into_inner();
     let result: anyhow::Result<String> = task::spawn_blocking({
         let state = state.clone();
         move || {
@@ -138,16 +134,14 @@ pub async fn post_debt_service(
                     PREMIUM, 
                     COST_OF_ISSUANCE
                 ) VALUES (?, ?, ?, ?, ?)";
-            for post in payload.posts {
-                let params = (
-                    &post.series_id.into_parameter(),
-                    &post.payment_date.into_parameter(),
-                    &post.principal.into_parameter(),
-                    &post.interest.into_parameter(),
-                );
-                conn.execute(sql, params, None)
-                    .context("Failed to post debt service.")?;
-            }
+            let params = (
+                &payload.series_id.into_parameter(),
+                &payload.payment_date.clone().into_parameter(),
+                &payload.principal.into_parameter(),
+                &payload.interest.into_parameter(),
+            );
+            conn.execute(sql, params, None)
+                .context("Failed to post debt service.")?;
 
             Ok("Insert completed".to_string())
         }

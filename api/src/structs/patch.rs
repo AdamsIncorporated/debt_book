@@ -11,11 +11,6 @@ pub struct DebtSeriesPatch {
 }
 
 #[derive(Serialize, Deserialize)]
-pub struct DebtPricingPatches {
-    pub patches: Vec<DebtPricingPatch>,
-}
-
-#[derive(Serialize, Deserialize)]
 pub struct DebtPricingPatch {
     pub id: i64,
     pub maturity_date: String,
@@ -24,11 +19,6 @@ pub struct DebtPricingPatch {
     pub yield_rate: f64,
     pub price: Option<f64>,
     pub premium_discount: Option<f64>,
-}
-
-#[derive(Serialize, Deserialize)]
-pub struct DebtServicePatches {
-    pub patches: Vec<DebtServicePatch>,
 }
 
 #[derive(Serialize, Deserialize)]

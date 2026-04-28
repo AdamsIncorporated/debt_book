@@ -1,5 +1,5 @@
 use crate::AppState;
-use crate::structs::patch::{DebtPricingPatches, DebtSeriesPatch, DebtServicePatches};
+use crate::structs::patch::{DebtPricingPatch, DebtSeriesPatch, DebtServicePatch};
 use actix_web::{HttpResponse, Responder, patch, web};
 use anyhow::Context;
 use odbc_api::IntoParameter;
@@ -61,10 +61,8 @@ pub async fn patch_debt_series(
 #[patch("/patch_debt_service")]
 pub async fn patch_debt_service(
     state: web::Data<AppState>,
-    payload: web::Json<DebtServicePatches>,
+    payload: web::Json<DebtServicePatch>,
 ) -> impl Responder {
-    let payload = payload.into_inner();
-
     let result: anyhow::Result<String> = tokio::task::spawn_blocking({
         let state = state.clone();
         move || {
@@ -85,15 +83,13 @@ pub async fn patch_debt_service(
                     INTEREST = ?
                 WHERE ID = ?";
 
-            for patch in payload.patches {
-                let params = (
-                    &patch.payment_date.into_parameter(),
-                    &patch.principal.into_parameter(),
-                    &patch.interest.into_parameter(),
-                    &patch.id.into_parameter(),
-                );
-                conn.execute(sql, params, None)?;
-            }
+            let params = (
+                &payload.payment_date.clone().into_parameter(),
+                &payload.principal.into_parameter(),
+                &payload.interest.into_parameter(),
+                &payload.id.into_parameter(),
+            );
+            conn.execute(sql, params, None)?;
             Ok("DebtService updated successfully".to_string())
         }
     })
@@ -112,10 +108,8 @@ pub async fn patch_debt_service(
 #[patch("/patch_debt_pricing")]
 pub async fn patch_debt_pricing(
     state: web::Data<AppState>,
-    payload: web::Json<DebtPricingPatches>,
+    payload: web::Json<DebtPricingPatch>,
 ) -> impl Responder {
-    let payload = payload.into_inner();
-
     let result: anyhow::Result<String> = tokio::task::spawn_blocking({
         let state = state.clone();
         move || {
@@ -139,18 +133,16 @@ pub async fn patch_debt_pricing(
                     PREMIUM_DISCOUNT = ?
                 WHERE ID = ?";
 
-            for patch in payload.patches {
-                let params = (
-                    &patch.maturity_date.into_parameter(),
-                    &patch.amount.into_parameter(),
-                    &patch.coupon_rate.into_parameter(),
-                    &patch.yield_rate.into_parameter(),
-                    &patch.price.into_parameter(),
-                    &patch.premium_discount.into_parameter(),
-                    &patch.id.into_parameter(),
-                );
-                conn.execute(sql, params, None)?;
-            }
+            let params = (
+                &payload.maturity_date.clone().into_parameter(),
+                &payload.amount.into_parameter(),
+                &payload.coupon_rate.into_parameter(),
+                &payload.yield_rate.into_parameter(),
+                &payload.price.into_parameter(),
+                &payload.premium_discount.into_parameter(),
+                &payload.id.into_parameter(),
+            );
+            conn.execute(sql, params, None)?;
 
             Ok("DebtPricing updated successfully".to_string())
         }

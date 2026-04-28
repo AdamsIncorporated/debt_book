@@ -10,11 +10,6 @@ pub struct DebtSeriesPost {
 }
 
 #[derive(Serialize, Deserialize)]
-pub struct DebtPricingPosts {
-    pub posts: Vec<DebtPricingPost>,
-}
-
-#[derive(Serialize, Deserialize)]
 pub struct DebtPricingPost {
     pub series_id: i64,        // parent series must exist in DB after Post
     pub maturity_date: String, // YYYY-MM-DD
@@ -23,11 +18,6 @@ pub struct DebtPricingPost {
     pub yield_rate: f64,
     pub price: f64,
     pub premium_discount: Option<f64>,
-}
-
-#[derive(Serialize, Deserialize)]
-pub struct DebtServicePosts {
-    pub posts: Vec<DebtServicePost>,
 }
 
 #[derive(Serialize, Deserialize)]
