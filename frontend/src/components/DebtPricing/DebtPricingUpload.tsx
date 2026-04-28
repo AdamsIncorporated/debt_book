@@ -12,7 +12,12 @@ import { SkeletonTable } from "../Widgets/SkeletonTable";
 import { UploadErrorsPanel } from "./UploadErrorsPanel";
 import { FormActionBar } from "../Widgets/FormActionBar";
 import CsvUploadRules from "../Widgets/CsvUploadRules";
-import { post, patch, del } from "../../utils/func";
+import {
+  PATCH_DEBT_PRICING,
+  POST_DEBT_PRICING,
+  DELETE_DEBT_PRICING,
+} from "../../Constants/Constants";
+import { submitWithDiff } from "../../utils/submitWithDiff";
 
 const DebtPricingUpload: React.FC = () => {
   const { seriesIdParam } = useParams<{ seriesIdParam?: string }>();
@@ -22,7 +27,8 @@ const DebtPricingUpload: React.FC = () => {
   const [error, setError] = useState<string[] | null>(null);
 
   const columns = useDebtPricingColumns();
-  const { rows, setRows, isLoading, originalRows } = useDebtPricingLoader(seriesId);
+  const { rows, setRows, isLoading, originalRows } =
+    useDebtPricingLoader(seriesId);
   const handleUpload = useDebtPricingUpload({
     columns,
     seriesId,
@@ -39,8 +45,24 @@ const DebtPricingUpload: React.FC = () => {
     );
   }, [columns, rows]);
 
-  const handleSubmit = () => {
-    navigate(`/debt-service/${seriesIdParam}`);
+  const handleSubmit = async () => {
+    try {
+      await submitWithDiff({
+        postUrl: POST_DEBT_PRICING,
+        patchUrl: PATCH_DEBT_PRICING,
+        deleteUrl: DELETE_DEBT_PRICING,
+        originalRows: originalRows,
+        currentRows: rows,
+        idKey: "id",
+      });
+      
+      navigate(`/debt-service/${seriesIdParam}`);
+    } catch (err) {
+      console.error("Submit failed", err);
+      setError(["An unexpected error occurred during submission."]);
+      return;
+    }
+
   };
 
   return (

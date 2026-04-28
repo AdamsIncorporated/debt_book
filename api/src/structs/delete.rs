@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 
-/// Top-level PATCH payload for DebtSeries
+/// Top-level DELETE payload for DebtSeries
 #[derive(Serialize, Deserialize)]
-pub struct DebtSeriesDeleteJson {
-    pub series_id: i64,
+pub struct RowDeleteJson {
+    pub id: i64,
 }

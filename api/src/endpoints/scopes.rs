@@ -1,5 +1,5 @@
 use crate::AppState;
-use crate::endpoints::delete::delete_all_series;
+use crate::endpoints::delete::{delete_debt_pricing, delete_debt_service};
 use crate::endpoints::get::{
     get_all_debt_series, get_all_series_names, get_debt_series_by_id,
     get_debt_series_pricing_by_id, get_debt_series_service_by_id, get_series_id_by_name,
@@ -11,7 +11,9 @@ use anyhow::{Context, Ok, Result};
 use odbc_api::{ConnectionOptions, Cursor};
 
 pub fn delete_scope() -> Scope {
-    web::scope("/delete").service(delete_all_series)
+    web::scope("/delete")
+        .service(delete_debt_pricing)
+        .service(delete_debt_service)
 }
 
 pub fn get_scope() -> Scope {
