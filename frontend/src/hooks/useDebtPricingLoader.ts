@@ -4,6 +4,7 @@ import { DebtPricing, getSeriesPricingById } from "../Constants/Constants";
 
 export const useDebtPricingLoader = (seriesId?: number) => {
   const [rows, setRows] = useState<DebtPricing[]>([]);
+  const [originalRows, setOriginalRows] = useState<DebtPricing[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
@@ -25,6 +26,7 @@ export const useDebtPricingLoader = (seriesId?: number) => {
 
         if (!alive) return;
         setRows(data?.length ? data : []);
+        setOriginalRows(data?.length ? data : []);
       } finally {
         if (alive) setIsLoading(false);
       }
@@ -35,5 +37,5 @@ export const useDebtPricingLoader = (seriesId?: number) => {
     };
   }, [seriesId]);
 
-  return { rows, setRows, isLoading };
+  return { rows, setRows, isLoading, originalRows };
 };

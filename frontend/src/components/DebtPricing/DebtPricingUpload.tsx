@@ -12,6 +12,7 @@ import { SkeletonTable } from "../Widgets/SkeletonTable";
 import { UploadErrorsPanel } from "./UploadErrorsPanel";
 import { FormActionBar } from "../Widgets/FormActionBar";
 import CsvUploadRules from "../Widgets/CsvUploadRules";
+import { post, patch, del } from "../../utils/func";
 
 const DebtPricingUpload: React.FC = () => {
   const { seriesIdParam } = useParams<{ seriesIdParam?: string }>();
@@ -21,7 +22,7 @@ const DebtPricingUpload: React.FC = () => {
   const [error, setError] = useState<string[] | null>(null);
 
   const columns = useDebtPricingColumns();
-  const { rows, setRows, isLoading } = useDebtPricingLoader(seriesId);
+  const { rows, setRows, isLoading, originalRows } = useDebtPricingLoader(seriesId);
   const handleUpload = useDebtPricingUpload({
     columns,
     seriesId,
