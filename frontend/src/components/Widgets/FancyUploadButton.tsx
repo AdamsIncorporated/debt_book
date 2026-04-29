@@ -10,7 +10,7 @@ export function FancyUploadButton({ label = "Upload File", onUpload }: Props) {
     <label
       className="
         inline-flex items-center gap-3 px-5 py-3
-        rounded-2xl bg-white text-gray-700 font-medium
+        rounded-xl bg-white text-gray-700 font-medium
         shadow-md cursor-pointer
         hover:bg-gray-100 active:scale-95
         transition-all border border-gray-200

@@ -16,7 +16,7 @@ export const FormActionBar = ({
     <div
       className="
         mt-8 flex items-center justify-between
-        rounded-lg border border-gray-200
+        rounded-xl border border-gray-200
         bg-gray-50 px-6 py-4
         shadow-sm
       "

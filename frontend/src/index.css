@@ -2,9 +2,7 @@
 
 html,
 body {
-  min-height: 100vh;
-  height: 100%;
-  padding: 5%;
+  padding: 2.5%;
 }
 
 body {

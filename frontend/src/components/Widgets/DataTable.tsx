@@ -22,7 +22,7 @@ export function DataTable<T>({ columns, rows }: DataTableProps<T>) {
             {columns.map((c) => (
               <th
                 key={String(c.key)}
-                className={`px-4 py-3 font-medium text-gray-700 ${
+                className={`px-4 py-3 font-medium ${
                   c.align === "right" ? "text-right" : "text-left"
                 }`}
               >

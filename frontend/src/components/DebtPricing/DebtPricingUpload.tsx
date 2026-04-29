@@ -85,7 +85,6 @@ const DebtPricingUpload: React.FC = () => {
         </div>
       ) : (
         <form
-          className="m-5"
           onSubmit={(e) => {
             e.preventDefault();
             handleSubmit();
