@@ -3,6 +3,7 @@ import { GET_ALL_SERIES } from "../../Constants/Constants";
 import { DebtSeries } from "../../Constants/Constants";
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import DebtSeriesLandingIntroCard from "./DebtSeriesLandingIntroCard";
 
 const SkeletonRow = () => (
   <tr className="animate-pulse">
@@ -41,34 +42,56 @@ const DebtSeriesLandingTable: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="mx-auto w-3/4 py-10">
-        <div className="overflow-hidden rounded-lg border border-gray-200 shadow-sm">
-          <table className="w-full text-sm">
-            <thead className="bg-gray-100">
-              <tr>
-                {[
-                  "ID",
-                  "Series",
-                  "Structure",
-                  "Tax Exempt",
-                  "Issuance Cost",
-                  "Use Of Proceeds",
-                  "Created",
-                  "Actions",
-                ].map((h) => (
-                  <th key={h} className="px-4 py-3 text-left">
-                    {h}
-                  </th>
+      <div className="mx-auto w-3/4 py-10 space-y-6">
+        {/* Loading state */}
+        {loading ? (
+          <div className="overflow-hidden rounded-lg border border-gray-200 shadow-sm">
+            <table className="w-full text-sm">
+              <thead className="bg-gray-100">
+                <tr>
+                  {[
+                    "ID",
+                    "Series",
+                    "Structure",
+                    "Tax Exempt",
+                    "Issuance Cost",
+                    "Use Of Proceeds",
+                    "Created",
+                    "Actions",
+                  ].map((h) => (
+                    <th key={h} className="px-4 py-3 text-left">
+                      {h}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <SkeletonRow key={i} />
                 ))}
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              {Array.from({ length: 5 }).map((_, i) => (
-                <SkeletonRow key={i} />
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </tbody>
+            </table>
+          </div>
+        ) : error ? (
+          <div className="text-center py-10 text-red-600">{error}</div>
+        ) : (
+          <>
+            {/* ✅ Real data table */}
+            <div className="overflow-y-auto rounded-lg border border-gray-200 shadow-sm">
+              {/* existing table markup unchanged */}
+            </div>
+
+            {/* ✅ Create new */}
+            <div className="flex justify-end">
+              <button
+                onClick={() => navigate("/debt-series/create-new-series")}
+                className="rounded-md bg-gray-500 px-4 py-2 text-sm font-medium text-white hover:bg-gray-600 transition"
+              >
+                ✨ Create New Series
+              </button>
+            </div>
+          </>
+        )}
       </div>
     );
   }
@@ -79,17 +102,16 @@ const DebtSeriesLandingTable: React.FC = () => {
 
   return (
     <div className="mx-auto w-3/4 py-10">
-      <div className="overflow-y-auto rounded-lg border border-gray-200 shadow-sm">
+      <DebtSeriesLandingIntroCard />
+      <div className="mt-5 overflow-y-auto rounded-lg border border-gray-200 shadow-sm">
         <table className="w-full text-sm">
-          <thead className="bg-gray-200 text-gray-700">
+          <thead className="bg-gray-200">
             <tr>
-              <th className="px-4 py-3 text-left">ID</th>
               <th className="px-4 py-3 text-left">Series</th>
               <th className="px-4 py-3 text-left">Structure</th>
               <th className="px-4 py-3 text-left">Tax Exempt</th>
               <th className="px-4 py-3 text-left">Issuance Cost</th>
               <th className="px-4 py-3 text-left">Use of Proceeds</th>
-              <th className="px-4 py-3 text-left">Created</th>
               <th className="px-4 py-3 text-center">Actions</th>
             </tr>
           </thead>
@@ -97,7 +119,6 @@ const DebtSeriesLandingTable: React.FC = () => {
           <tbody className="divide-y divide-gray-200">
             {series.map((s) => (
               <tr key={s.id} className="hover:bg-gray-50 transition">
-                <td className="px-4 py-3">{s.id}</td>
                 <td className="px-4 py-3 font-medium">{s.series_name}</td>
                 <td className="px-4 py-3 font-medium">{s.structure}</td>
                 <td className="px-4 py-3">{s.is_tax_exempt ? "Yes" : "No"}</td>
@@ -105,11 +126,6 @@ const DebtSeriesLandingTable: React.FC = () => {
                   {formatCurrency(s.cost_of_issuance ?? 0)}
                 </td>
                 <td className="px-4 py-3 font-medium">{s.use_of_proceeds}</td>
-                <td className="px-4 py-3">
-                  {s.created_at
-                    ? new Date(s.created_at).toLocaleDateString()
-                    : "—"}
-                </td>
                 <td className="px-4 py-3 text-center">
                   <button
                     className="px-4 py-2 shadow hover:bg-gray-200 rounded-md transition hover:cursor-pointer"
