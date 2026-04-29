@@ -41,14 +41,17 @@ export async function submitWithDiff<T, K extends keyof T>({
   try {
     for (const row of toDelete) {
       const id = row[idKey] as any;
+      console.log("Deleting", { id, row });
       await del(deleteUrl, id);
     }
 
     for (const { changes } of toUpdate) {
+      console.log("Patching", { id: changes[idKey], changes });
       await patch<T>(patchUrl, changes);
     }
 
     for (const row of toCreate) {
+      console.log("Posting", { row });
       await post(postUrl, row);
     }
   } catch (err) {

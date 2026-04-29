@@ -37,7 +37,7 @@ export const FormActionBar = ({
               focus:outline-none focus:ring-2 focus:ring-gray-200
             "
           >
-            Skip to Pricing
+            Skip to next Section
           </button>
         )}
       </div>

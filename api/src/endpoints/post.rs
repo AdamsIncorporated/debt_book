@@ -126,14 +126,13 @@ pub async fn post_debt_service(
                 .context("ODBC connect failed")?;
 
             let sql = "
-                INSERT INTO TBL_DEBT_SERIES 
+                INSERT INTO TBL_DEBT_SERVICE 
                 (
-                    SERIES_NAME, 
-                    IS_TAX_EXEMPT, 
-                    PAR_AMOUNT, 
-                    PREMIUM, 
-                    COST_OF_ISSUANCE
-                ) VALUES (?, ?, ?, ?, ?)";
+                    SERIES_ID, 
+                    PAYMENT_DATE, 
+                    PRINCIPAL, 
+                    INTEREST
+                ) VALUES (?, ?, ?, ?)";
             let params = (
                 &payload.series_id.into_parameter(),
                 &payload.payment_date.clone().into_parameter(),

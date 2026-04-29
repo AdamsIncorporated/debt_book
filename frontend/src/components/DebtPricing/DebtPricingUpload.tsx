@@ -9,7 +9,7 @@ import { downloadExcelTemplate } from "../../utils/func";
 import { DataTable } from "../Widgets/DataTable";
 import { UploadBar } from "../Widgets/UploadBar";
 import { SkeletonTable } from "../Widgets/SkeletonTable";
-import { UploadErrorsPanel } from "./UploadErrorsPanel";
+import { UploadErrorsPanel } from "../Widgets/UploadErrorsPanel";
 import { FormActionBar } from "../Widgets/FormActionBar";
 import CsvUploadRules from "../Widgets/CsvUploadRules";
 import {
@@ -96,7 +96,7 @@ const DebtPricingUpload: React.FC = () => {
           <FormActionBar
             seriesId={seriesId}
             onSkip={() => {
-              navigate(`/debt-service/${seriesIdParam}`);
+              navigate(`/debt-service/${seriesId}`);
             }}
             submitLabel="Save Pricing"
           />
