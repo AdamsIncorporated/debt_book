@@ -10,27 +10,28 @@ export const useDebtPricingLoader = (seriesId?: number) => {
   useEffect(() => {
     let alive = true;
 
-    (async () => {
-      if (seriesId == null) {
-        setIsLoading(false);
-        return;
-      }
+    if (seriesId == null) {
+      setRows([]);
+      setOriginalRows([]);
+      setIsLoading(false);
+      return;
+    }
 
-      setIsLoading(true);
-      try {
-        const data = await customFetch<DebtPricing[]>({
-          endpoint: getSeriesPricingById(seriesId),
-          entityName: "Debt Series Pricing",
-          mapResponse: (raw) => raw,
-        });
+    setIsLoading(true);
 
+    customFetch<DebtPricing[]>({
+      endpoint: getSeriesPricingById(seriesId),
+      entityName: "Debt Series Pricing",
+      mapResponse: (raw) => raw,
+    })
+      .then((data) => {
         if (!alive) return;
-        setRows(data?.length ? data : []);
-        setOriginalRows(data?.length ? data : []);
-      } finally {
+        setRows(data);
+        setOriginalRows(data);
+      })
+      .finally(() => {
         if (alive) setIsLoading(false);
-      }
-    })();
+      });
 
     return () => {
       alive = false;

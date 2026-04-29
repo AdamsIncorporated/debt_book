@@ -24,7 +24,7 @@ export async function customFetch<T>({
     const json = await res.json();
     console.debug("✅ Raw API response:", json);
 
-    if (!Array.isArray(json) || !json[0]) {
+    if (!Array.isArray(json)) {
       console.error("❌ Unexpected response shape:", json);
       throw new Error(`${entityName} response format invalid`);
     }

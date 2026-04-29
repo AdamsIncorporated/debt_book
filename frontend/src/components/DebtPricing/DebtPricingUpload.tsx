@@ -21,8 +21,8 @@ import { submitWithDiff } from "../../utils/submitWithDiff";
 import { toast } from "react-toastify";
 
 const DebtPricingUpload: React.FC = () => {
-  const { seriesIdParam } = useParams<{ seriesIdParam?: string }>();
-  const seriesId = seriesIdParam ? Number(seriesIdParam) : undefined;
+  const { seriesIdParam } = useParams<{ seriesIdParam: string }>();
+  const seriesId = Number(seriesIdParam);
   const navigate = useNavigate();
 
   const [error, setError] = useState<string[] | null>(null);
@@ -58,7 +58,7 @@ const DebtPricingUpload: React.FC = () => {
         idKey: "id",
       });
       toast.success("Debt series updated successfully");
-      navigate(`/debt-service/${seriesIdParam}`);
+      navigate(`/debt-service/${seriesId}`);
     } catch (err) {
       console.error("Submit failed", err);
       setError(["An unexpected error occurred during submission."]);
@@ -94,7 +94,7 @@ const DebtPricingUpload: React.FC = () => {
         >
           <DataTable columns={columns as any} rows={rows} />
           <FormActionBar
-            seriesId={seriesIdParam}
+            seriesId={seriesId}
             onSkip={() => {
               navigate(`/debt-service/${seriesIdParam}`);
             }}

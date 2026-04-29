@@ -11,7 +11,7 @@ const EMPTY_DEBT_SERIES_FORM = {
   useOfProceeds: "",
 };
 
-export const useDebtSeriesLoader = (seriesId?: string) => {
+export const useDebtSeriesLoader = (seriesId?: number) => {
   const [form, setForm] = useState<any>(null);
   const [existingSeriesName, setExistingSeriesName] = useState("");
   const [loaded, setLoaded] = useState(false);

@@ -2,7 +2,7 @@ import React from "react";
 import { FormSubmitButton } from "./FormSubmitButton";
 
 interface FormActionBarProps {
-  seriesId?: string;
+  seriesId?: number;
   onSkip?: () => void;
   submitLabel?: string;
 }

@@ -17,7 +17,8 @@ import { FormActionBar } from "../../components/Widgets/FormActionBar";
 import { toast } from "react-toastify";
 
 const DebtSeriesForm = () => {
-  const { seriesId } = useParams();
+  const { seriesIdParam } = useParams<{ seriesIdParam: string }>();
+  const seriesId = Number(seriesIdParam);
   const navigate = useNavigate();
 
   const [fieldErrors, setFieldErrors] = React.useState<any>({});
