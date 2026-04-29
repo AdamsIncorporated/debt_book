@@ -12,7 +12,7 @@ export const FormSubmitButton = ({
   disabled = false,
 }: FormSubmitButtonProps) => {
   return (
-    <div className="mt-6 flex justify-end">
+    <div className="flex justify-end">
       <button
         type="submit"
         disabled={disabled || loading}

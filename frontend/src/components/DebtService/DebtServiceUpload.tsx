@@ -93,6 +93,9 @@ const DebtServiceUpload: React.FC = () => {
           <DataTable columns={columns as any} rows={rows} />
           <FormActionBar
             seriesId={seriesId}
+            onBackwards={() => {
+              navigate(`/debt-pricing/${seriesId}`);
+            }}
             onSkip={() => {
               navigate(`/`);
             }}
