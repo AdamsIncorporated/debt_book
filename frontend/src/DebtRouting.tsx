@@ -1,5 +1,5 @@
 import { Routes, Route } from "react-router-dom";
-import DebtSeriesLandingTable from "./components/DebtService/DebtSeriesLandingTable";
+import DebtSeriesLandingTable from "./components/Landing/DebtSeriesLandingTable";
 import DebtSeriesForm from "./components/DebtSeries/DebtSeriesForm";
 import DebtPricingUpload from "./components/DebtPricing/DebtPricingUpload";
 import DebtServiceUpload from "./components/DebtService/DebtServiceUpload";

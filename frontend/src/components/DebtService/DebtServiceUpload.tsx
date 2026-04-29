@@ -19,6 +19,7 @@ import {
 } from "../../Constants/Constants";
 import { submitWithDiff } from "../../utils/submitWithDiff";
 import { toast } from "react-toastify";
+import DebtServiceSummaryCard from "./DebtServiceSummaryCard";
 
 const DebtServiceUpload: React.FC = () => {
   const { seriesIdParam } = useParams<{ seriesIdParam: string }>();
@@ -68,12 +69,10 @@ const DebtServiceUpload: React.FC = () => {
 
   return (
     <div className="space-y-8">
-      <h3 className="text-gray-700 text-3xl font-semibold">
-        Debt Service Upload
-      </h3>
+      <h3 className="text-3xl font-semibold">Debt Service Upload</h3>
       <CsvUploadRules />
       <div className="mt-2 w-full h-1 bg-gray-300 rounded-full" />
-
+      <DebtServiceSummaryCard rows={rows} />
       <UploadBar onUpload={handleUpload} onDownload={handleDownload} />
 
       {error && <UploadErrorsPanel errors={error} />}

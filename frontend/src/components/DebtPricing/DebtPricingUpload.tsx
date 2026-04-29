@@ -68,9 +68,7 @@ const DebtPricingUpload: React.FC = () => {
 
   return (
     <div className="space-y-8">
-      <h3 className="text-gray-700 text-3xl font-semibold">
-        Debt Pricing Upload
-      </h3>
+      <h3 className="text-3xl font-semibold">Debt Pricing Upload</h3>
       <CsvUploadRules />
       <div className="mt-2 w-full h-1 bg-gray-300 rounded-full" />
 
