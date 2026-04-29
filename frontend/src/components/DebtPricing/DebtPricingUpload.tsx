@@ -18,6 +18,7 @@ import {
   DELETE_DEBT_PRICING,
 } from "../../Constants/Constants";
 import { submitWithDiff } from "../../utils/submitWithDiff";
+import DebtPricingSummaryCard from "./DebtPricingSummaryCard";
 import { toast } from "react-toastify";
 
 const DebtPricingUpload: React.FC = () => {
@@ -71,7 +72,7 @@ const DebtPricingUpload: React.FC = () => {
       <h3 className="text-3xl font-semibold">Debt Pricing Upload</h3>
       <CsvUploadRules />
       <div className="mt-2 w-full h-1 bg-gray-300 rounded-full" />
-
+      <DebtPricingSummaryCard rows={rows} />
       <UploadBar onUpload={handleUpload} onDownload={handleDownload} />
 
       {error && <UploadErrorsPanel errors={error} />}
