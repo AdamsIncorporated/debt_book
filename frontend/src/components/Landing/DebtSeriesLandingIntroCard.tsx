@@ -4,12 +4,11 @@ export default function DebtSeriesLandingIntroCard() {
   return (
     <div className="w-full rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
       <div className="mb-2">
-        <h1 className="text-2xl font-semibold text-gray-900">
-          Debt Series Management
-        </h1>
+        <h1 className="text-2xl font-semibold text-gray-900">Debt Book</h1>
         <p className="mt-1 text-sm text-gray-600">
           A centralized workspace for managing bond series, pricing structures,
-          and long‑term debt service obligations.
+          and long‑term debt service obligations for Travis County Healthcare
+          District.
         </p>
       </div>
 
