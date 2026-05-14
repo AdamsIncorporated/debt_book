@@ -91,7 +91,7 @@ const DebtSeriesForm = () => {
       />
       <FormActionBar
         seriesId={seriesId}
-        onBackwards={() => navigate(`/`)}
+        onBackwards={() => navigate(`/debt-pricing/${seriesId}`)}
         onSkip={() => navigate(`/debt-pricing/${seriesId}`)}
         submitLabel={seriesId ? "Save Changes" : "Create Series"}
       />
