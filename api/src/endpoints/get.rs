@@ -4,13 +4,13 @@ use crate::structs::get::DebtSeries;
 use crate::structs::get::DebtService;
 use crate::structs::get::SeriesNameList;
 use actix_web::{HttpResponse, Responder, get, web};
-use actix_web::{Result as ActixResult, error::ErrorInternalServerError};
 use anyhow::{Context, Ok, Result};
 use odbc_api::buffers::Indicator;
 use odbc_api::parameter::VarChar;
 use odbc_api::{ConnectionOptions, Cursor, Nullable};
 use tokio::task;
 
+// USP_DEBT_GET_SERIES_ID_BY_NAME
 #[get("/get_series_id_by_name")]
 pub async fn get_series_id_by_name(
     state: web::Data<AppState>,
@@ -18,9 +18,8 @@ pub async fn get_series_id_by_name(
 ) -> impl Responder {
     const COLUMN_ID: u16 = 1;
     const SERIES_NAME_CAPACITY: usize = 100;
-    const SQL_COMMAND: &str = "CALL GET_DEBT_SERIES_ID(?);";
+    const SQL_COMMAND: &str = "CALL USP_DEBT_GET_SERIES_ID_BY_NAME(?);";
 
-    // ✅ Fail fast if query param is missing
     let series_name = match query.get("series_name") {
         Some(v) => v.clone(),
         None => {
@@ -32,7 +31,6 @@ pub async fn get_series_id_by_name(
         let state = state.clone();
 
         move || -> anyhow::Result<Option<i64>> {
-            // ✅ Correct buffer: 100 bytes long
             let mut buffer = [0u8; SERIES_NAME_CAPACITY];
 
             let bytes = series_name.as_bytes();
@@ -77,6 +75,7 @@ pub async fn get_series_id_by_name(
     }
 }
 
+// USP_DEBT_GET_ALL_DEBT_SERIES
 #[get("/get_all_series")]
 pub async fn get_all_debt_series(state: web::Data<AppState>) -> impl Responder {
     const COLUMN_ID: u16 = 1;
@@ -201,6 +200,7 @@ pub async fn get_all_debt_series(state: web::Data<AppState>) -> impl Responder {
     }
 }
 
+// USP_GET_DEBT_SERIES_BY_ID
 #[get("/get_debt_series_by_id/{id}")]
 pub async fn get_debt_series_by_id(
     state: web::Data<AppState>,
@@ -226,7 +226,7 @@ pub async fn get_debt_series_by_id(
     const USE_OF_PROCEEDS_CAPACITY: usize = 100;
     const CREATED_AT_CAPACITY: usize = 50;
 
-    const SQL_GET_ALL_SERIES: &str = "CALL debt_get_all_debt_series();";
+    const SQL_GET_SERIES_BY_ID: &str = "CALL USP_GET_DEBT_SERIES_BY_ID(?);";
 
     let result: anyhow::Result<Vec<DebtSeries>> = task::spawn_blocking({
         let state = state.clone();
@@ -240,9 +240,10 @@ pub async fn get_debt_series_by_id(
                 .context("ODBC connect failed")?;
 
             let mut rows_out: Vec<DebtSeries> = Vec::new();
+            let series_id: i64 = path.into_inner();
 
             if let Some(mut cursor) = conn
-                .execute(SQL_GET_ALL_SERIES, (), None)
+                .execute(SQL_GET_SERIES_BY_ID, (&series_id,), None)
                 .context("Failed to get all debt series.")?
             {
                 while let Some(mut row) = cursor.next_row()? {
@@ -328,6 +329,7 @@ pub async fn get_debt_series_by_id(
     }
 }
 
+// USP_DEBT_GET_DEBT_SERVICE_BY_SERIES_ID
 #[get("/get_debt_series_service_by_id/{id}")]
 pub async fn get_debt_series_service_by_id(
     state: web::Data<AppState>,
@@ -342,7 +344,7 @@ pub async fn get_debt_series_service_by_id(
 
     const PAYMENT_DATE_CAPACITY: usize = 50;
     const CREATED_AT_CAPACITY: usize = 50;
-    const SQL_COMMAND: &str = "SELECT * FROM TBL_DEBT_SERVICE WHERE SERIES_ID = ?";
+    const SQL_COMMAND: &str = "CALL USP_DEBT_GET_DEBT_SERVICE_BY_SERIES_ID(?)";
 
     let result: anyhow::Result<Vec<DebtService>> = task::spawn_blocking({
         let state = state.clone();
@@ -435,6 +437,7 @@ pub async fn get_debt_series_service_by_id(
     }
 }
 
+// USP_DEBT_GET_DEBT_PRICING_BY_SERIES_ID
 #[get("/get_debt_series_pricing_by_id/{id}")]
 pub async fn get_debt_series_pricing_by_id(
     state: web::Data<AppState>,
@@ -566,6 +569,7 @@ pub async fn get_debt_series_pricing_by_id(
     }
 }
 
+// USP_DEBT_GET_DISTINCT_DEBT_SERIES_NAMES
 #[get("/get_all_series_names")]
 pub async fn get_all_series_names(state: web::Data<AppState>) -> impl Responder {
     let result: Result<Vec<SeriesNameList>> = task::spawn_blocking({
