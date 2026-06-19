@@ -23,19 +23,29 @@ pub async fn post_series(
                 .context("ODBC connect failed")?;
 
             let sql = "
-                INSERT INTO TBL_DEBT_SERIES 
-                    (
-                        SERIES_NAME, 
-                        STRUCTURE,
-                        IS_TAX_EXEMPT, 
-                        COST_OF_ISSUANCE,
-                        USE_OF_PROCEEDS
-                    ) VALUES (?, ?, ?, ?, ?)";
+                CALL INSERT_DEBT_SERIES(
+                    P_SERIES_NAME => ?,
+                    P_IS_TAX_EXEMPT => ?,
+                    P_DELIVERY_DATE => ?,
+                    P_DATED_DATE => ?,
+                    P_PAR_AMOUNT => ?,
+                    P_PREMIUM => ?,
+                    P_STRUCTURE => ?,
+                    P_COST_OF_ISSUANCE => ?,
+                    P_IS_STRAIGHT_LINE => ?,
+                    P_USE_OF_PROCEEDS => ?
+                );
+                ";
             let params = (
                 &payload.series_name.into_parameter(),
-                &payload.structure.into_parameter(),
                 &payload.is_tax_exempt.into_parameter(),
-                &payload.cost_of_issuance.unwrap_or(0.0).into_parameter(),
+                &payload.delivery_date.into_parameter(),
+                &payload.dated_date.into_parameter(),
+                &payload.par_amount.into_parameter(),
+                &payload.premium.into_parameter(),
+                &payload.structure.into_parameter(),
+                &payload.cost_of_issuance.into_parameter(),
+                &payload.is_straight_line.into_parameter(),
                 &payload.use_of_proceeds.into_parameter(),
             );
             conn.execute(sql, params, None)

@@ -3,10 +3,15 @@ use serde::{Deserialize, Serialize};
 #[derive(Serialize, Deserialize)]
 pub struct DebtSeriesPost {
     pub series_name: String,
-    pub structure: String,
     pub is_tax_exempt: i8,
-    pub cost_of_issuance: Option<f64>,
-    pub use_of_proceeds: Option<String>,
+    pub delivery_date: String,
+    pub dated_date: String,
+    pub par_amount: f64,
+    pub premium: Option<f64>,
+    pub structure: String,
+    pub cost_of_issuance: f64,
+    pub is_straight_line: i8,
+    pub use_of_proceeds: String,
 }
 
 #[derive(Serialize, Deserialize)]
