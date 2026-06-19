@@ -24,20 +24,31 @@ pub async fn patch_debt_series(
 
             // SQL with all columns
             let sql = "
-                UPDATE TBL_DEBT_SERIES 
-                SET 
-                    SERIES_NAME = ?,
-                    STRUCTURE = ?,
-                    IS_TAX_EXEMPT = ?, 
-                    COST_OF_ISSUANCE = ?,
-                    USE_OF_PROCEEDS = ?
-                WHERE ID = ?";
+                CALL UPDATE_DEBT_SERIES(
+                    P_SERIES_NAME => ?,
+                    P_IS_TAX_EXEMPT => ?,
+                    P_DELIVERY_DATE => ?,
+                    P_DATED_DATE => ?,
+                    P_PAR_AMOUNT => ?,
+                    P_PREMIUM => ?,
+                    P_STRUCTURE => ?,
+                    P_COST_OF_ISSUANCE => ?,
+                    P_IS_STRAIGHT_LINE => ?,
+                    P_USE_OF_PROCEEDS => ?,
+                    P_ID => ?
+                );
+            ";
 
             let params = (
                 &payload.series_name.into_parameter(),
-                &payload.structure.into_parameter(),
                 &payload.is_tax_exempt.into_parameter(),
+                &payload.delivery_date.into_parameter(),
+                &payload.dated_date.into_parameter(),
+                &payload.par_amount.into_parameter(),
+                &payload.premium.into_parameter(),
+                &payload.structure.into_parameter(),
                 &payload.cost_of_issuance.into_parameter(),
+                &payload.is_straight_line.into_parameter(),
                 &payload.use_of_proceeds.into_parameter(),
                 &payload.id.into_parameter(),
             );
@@ -76,12 +87,13 @@ pub async fn patch_debt_service(
 
             // SQL with all columns
             let sql = "
-                UPDATE TBL_DEBT_SERVICE 
-                SET 
-                    PAYMENT_DATE = ?, 
-                    PRINCIPAL = ?, 
-                    INTEREST = ?
-                WHERE ID = ?";
+                CALL UPDATE_DEBT_SERVICE(
+                    P_PAYMENT_DATE => ?,
+                    P_PRINCIPAL => ?,
+                    P_INTEREST => ?,
+                    P_ID => ?
+                );
+            ";
 
             let params = (
                 &payload.payment_date.clone().into_parameter(),
@@ -123,15 +135,16 @@ pub async fn patch_debt_pricing(
 
             // SQL with all columns
             let sql = "
-                UPDATE TBL_DEBT_PRICING
-                SET 
-                    MATURITY_DATE = ?,
-                    AMOUNT = ?, 
-                    COUPON_RATE = ?, 
-                    YIELD = ?, 
-                    PRICE = ?, 
-                    PREMIUM_DISCOUNT = ?
-                WHERE ID = ?";
+               CALL UPDATE_DEBT_PRICING(
+                P_MATURITY_DATE => ?,
+                P_AMOUNT => ?,
+                P_COUPON_RATE => ?,
+                P_YIELD => ?,
+                P_PRICE => ?,
+                P_PREMIUM_DISCOUNT => ?,
+                P_ID => ?
+            );
+            ";
 
             let params = (
                 &payload.maturity_date.clone().into_parameter(),
