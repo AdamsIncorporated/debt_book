@@ -73,16 +73,16 @@ pub async fn post_debt_pricing(
                 .context("ODBC connect failed")?;
 
             let sql = "
-                INSERT INTO TBL_DEBT_PRICING 
-                (
-                    SERIES_ID, 
-                    MATURITY_DATE, 
-                    AMOUNT, 
-                    COUPON_RATE, 
-                    YIELD, 
-                    PRICE, 
-                    PREMIUM_DISCOUNT
-                ) VALUES (?, ?, ?, ?, ?, ?, ?)";
+                CALL INSERT_DEBT_PRICING(
+                    P_SERIES_ID => ?,
+                    P_MATURITY_DATE => ?,
+                    P_AMOUNT => ?,
+                    P_COUPON_RATE => ?,
+                    P_YIELD => ?,
+                    P_PRICE => ?,
+                    P_PREMIUM_DISCOUNT => ?
+                );
+            ";
             let params = (
                 &payload.series_id.into_parameter(),
                 &payload.maturity_date.clone().into_parameter(),
@@ -126,13 +126,13 @@ pub async fn post_debt_service(
                 .context("ODBC connect failed")?;
 
             let sql = "
-                INSERT INTO TBL_DEBT_SERVICE 
-                (
-                    SERIES_ID, 
-                    PAYMENT_DATE, 
-                    PRINCIPAL, 
-                    INTEREST
-                ) VALUES (?, ?, ?, ?)";
+                CALL INSERT_DEBT_SERVICE(
+                    P_SERIES_ID => ?,
+                    P_PAYMENT_DATE => ?,
+                    P_PRINCIPAL => ?,
+                    P_INTEREST => ?
+                );
+            ";
             let params = (
                 &payload.series_id.into_parameter(),
                 &payload.payment_date.clone().into_parameter(),
