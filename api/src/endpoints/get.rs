@@ -98,7 +98,7 @@ pub async fn get_all_debt_series(state: web::Data<AppState>) -> impl Responder {
     const USE_OF_PROCEEDS_CAPACITY: usize = 100;
     const CREATED_AT_CAPACITY: usize = 50;
 
-    const SQL_GET_ALL_SERIES: &str = "CALL debt_get_all_debt_series();";
+    const SQL_GET_ALL_SERIES: &str = "CALL usp_debt_get_all_debt_series();";
 
     let result: anyhow::Result<Vec<DebtSeries>> = task::spawn_blocking({
         let state = state.clone();
@@ -580,7 +580,7 @@ pub async fn get_all_series_names(state: web::Data<AppState>) -> impl Responder 
                 .connect_with_connection_string(&state.conn_str, ConnectionOptions::default())
                 .context("ODBC connect failed")?;
 
-            let sql = "CALL DEBT_GET_DISTINCT_DEBT_SERIES_NAMES(?);";
+            let sql = "CALL USP_DEBT_GET_DISTINCT_DEBT_SERIES_NAMES(?);";
 
             let mut names = Vec::new();
 
