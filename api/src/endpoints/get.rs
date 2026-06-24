@@ -142,9 +142,9 @@ pub async fn get_all_debt_series(state: web::Data<AppState>) -> impl Responder {
                     row.get_data(COLUMN_PAR_AMOUNT, &mut par_amount_buf)?;
                     let par_amount = par_amount_buf;
 
-                    let mut premium_buf = 0f64;
+                    let mut premium_buf = Nullable::<f64>::null();
                     row.get_data(COLUMN_PREMIUM, &mut premium_buf)?;
-                    let premium = Some(premium_buf);
+                    let premium = premium_buf.into_opt();
 
                     let mut structure_buf = Vec::<u8>::with_capacity(STRUCTURE_CAPACITY);
                     row.get_text(COLUMN_STRUCTURE, &mut structure_buf)?;
@@ -162,7 +162,7 @@ pub async fn get_all_debt_series(state: web::Data<AppState>) -> impl Responder {
                     let mut use_of_proceeds_buf =
                         Vec::<u8>::with_capacity(USE_OF_PROCEEDS_CAPACITY);
                     row.get_text(COLUMN_USE_OF_PROCEEDS, &mut use_of_proceeds_buf)?;
-                    let use_of_proceeds = Some(String::from_utf8(use_of_proceeds_buf)?);
+                    let use_of_proceeds = String::from_utf8(use_of_proceeds_buf)?;
 
                     let mut created_at_buf = Vec::<u8>::with_capacity(CREATED_AT_CAPACITY);
                     row.get_text(COLUMN_CREATED_AT, &mut created_at_buf)?;
@@ -200,7 +200,7 @@ pub async fn get_all_debt_series(state: web::Data<AppState>) -> impl Responder {
     }
 }
 
-// USP_GET_DEBT_SERIES_BY_ID
+// USP_DEBT_GET_DEBT_SERIES_ID
 #[get("/get_debt_series_by_id/{id}")]
 pub async fn get_debt_series_by_id(
     state: web::Data<AppState>,
@@ -226,8 +226,6 @@ pub async fn get_debt_series_by_id(
     const USE_OF_PROCEEDS_CAPACITY: usize = 100;
     const CREATED_AT_CAPACITY: usize = 50;
 
-    const SQL_GET_SERIES_BY_ID: &str = "CALL USP_GET_DEBT_SERIES_BY_ID(?);";
-
     let result: anyhow::Result<Vec<DebtSeries>> = task::spawn_blocking({
         let state = state.clone();
         move || {
@@ -241,9 +239,10 @@ pub async fn get_debt_series_by_id(
 
             let mut rows_out: Vec<DebtSeries> = Vec::new();
             let series_id: i64 = path.into_inner();
+            let sql = format!("CALL USP_DEBT_GET_DEBT_SERIES_BY_ID({})", &series_id);
 
             if let Some(mut cursor) = conn
-                .execute(SQL_GET_SERIES_BY_ID, (&series_id,), None)
+                .execute(&sql, (), None)
                 .context("Failed to get all debt series.")?
             {
                 while let Some(mut row) = cursor.next_row()? {
@@ -291,7 +290,7 @@ pub async fn get_debt_series_by_id(
                     let mut use_of_proceeds_buf =
                         Vec::<u8>::with_capacity(USE_OF_PROCEEDS_CAPACITY);
                     row.get_text(COLUMN_USE_OF_PROCEEDS, &mut use_of_proceeds_buf)?;
-                    let use_of_proceeds = Some(String::from_utf8(use_of_proceeds_buf)?);
+                    let use_of_proceeds = String::from_utf8(use_of_proceeds_buf)?;
 
                     let mut created_at_buf = Vec::<u8>::with_capacity(CREATED_AT_CAPACITY);
                     row.get_text(COLUMN_CREATED_AT, &mut created_at_buf)?;

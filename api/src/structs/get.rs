@@ -24,7 +24,7 @@ pub struct DebtSeries {
     pub structure: String,
     pub cost_of_issuance: Option<f64>,
     pub is_straight_line: bool,
-    pub use_of_proceeds: Option<String>,
+    pub use_of_proceeds: String,
     pub created_at: Option<String>,
 }
 
